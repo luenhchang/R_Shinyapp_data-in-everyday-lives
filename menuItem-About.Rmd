@@ -1,0 +1,83 @@
+---
+title: "Data in Everyday Lives"
+# Filepath: C:/GoogleDrive/scripts/R-shinyapp_data-in-everyday-lives/menuItem-About.Rmd
+# Modified from C:/GoogleDrive/scripts/R-shinyapp_data-in-everyday-lives/menuItem-Fitness.Rmd
+# Date created: 13-May-2024
+# Reference 
+## [How to remove "padding" on left side of R markdown generated HTML file](https://stackoverflow.com/questions/57175174/how-to-remove-padding-on-left-side-of-r-markdown-generated-html-file)
+## [Increase width of entire HTML Rmarkdown output](https://stackoverflow.com/questions/34906002/increase-width-of-entire-html-rmarkdown-output)
+
+## Date       Changes:
+##------------------------------------------------------------------------------------------------------------------
+## 2024-05-16 Applied different black colors following [Font colors for ui/ux design instead of pure black #000000](https://bootcamp.uxdesign.cc/font-colors-to-use-instead-of-pure-black-000000-a53944d4e3eb)
+## 2024-05-16 Changed font size and color using <font size="5"><span style="color:color-code"> your text </span></font> following [R Markdown - changing font size and font type in html output](https://stackoverflow.com/questions/29274501/r-markdown-changing-font-size-and-font-type-in-html-output), [Add Colour to Your Markdown Text](https://clemensjarnach.github.io/02-articles/2023-05-02-article.html) 
+## 2024-05-16 Changed in YAML header 
+# output: 
+#    html_document:
+#      theme: cerulean
+#      toc: no
+# to output: html_fragment following [Displaying html file using includeHTML in shiny is not working with renderUI()](https://stackoverflow.com/questions/56064805/displaying-html-file-using-includehtml-in-shiny-is-not-working-with-renderui)
+## 2024-05-15 Excluded reading this Rmd file from the app because almost all the valueBoxes and infoBoxes disappear. They reappear after excluding the reading of this file  
+## 2024-05-15 Removed 
+# <style type="text/css">
+#   body{
+#   font-size: 20pt;
+# }
+# </style>
+# as this styling enlarges font size in all dataTables and has probably become the culprit of a slow app
+## 2024-05-14 Revised content text by ChatGPT3.5
+##------------------------------------------------------------------------------------------------------------------
+output: html_fragment
+---
+
+<style>
+.main-container {
+    max-width: 1800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+</style>
+
+<font size="5"><span style="color:#0B1215">
+**Data in Everyday Lives** offers a dynamic dashboard, showcasing and dissecting data gathered from my daily activities, spanning from grocery runs and item usage to recycling habits and fitness routines.
+</span></font>
+
+## Food
+<font size="5"><span style="color:#352f36">
+My **food** section initially began by tabulating barcode scans of select items. Now, it has evolved to include tracking expiration dates, usage, and pricing for all barcode-labelled products in my pantry and refrigerator. Ever found yourself wondering about expiring items or stock quantities? Or calculating the optimal purchase amount for discounted staples? Monitoring your grocery status could be the key to reducing food waste. 
+</span></font>
+
+## Bathroom
+<font size="5"><span style="color:#0C0C0C">
+The **bathroom** section is simpler than the food tracking. It all started when I struggled to answer a basic question: How much unopened dental floss do I have? This simple dilemma prompted me to track my personal care essentials like dental floss, tooth paste, soap and toilet paper. Now, I can confidently assess my stock in my phone and make informed decisions, especially  when faced with tempting discounts. 
+</span></font>
+
+## Recycling
+<font size="5"><span style="color:#101720">
+The **recycling** part is designed to monitor collections and refunds through Queensland's Containers for Change program. Driven by personal interest, seek to track the quantities of plastic bottles, beverage cans, glass bottles and cartons in my possession. Upon taking these containers to the recycling centre, I compare my counts with those registered by the facility. Current inventory is calculated by aggregating counts across the three container types, resetting the tally to zero after each refund, assuming the entire stock is returned for recycling.
+</span></font>
+
+## Fitness
+<font size="5"><span style="color:#031602">
+The **Fitness** section analyses activity data sourced from the Strava web service. I am currently enhacing its capabilities to handle activity and single-event data uploaded by users other than myself.
+</span></font>
+
+## Jobs
+<font size="5">
+The **Jobs** section is tailored to monitor the progress of job applications. One of the primary data challenges lies in the ambiguity surroundings the start and end times of job-related events. Nonetheless, currently, it proves valuable to track the duration elapsed since the submission of a job application. Login is required to access [employment](https://luenhchang.shinyapps.io/employment/)
+</font>
+
+## Internet
+<font size="5">
+The **Internet** section was born out of frustration with fluctuating WiFi speeds at home. Constantly let down by various network providers, I could not determine if the sluggish internet was due to poor reception or VPN content filtering. To unravel this myself, I began running speed test in My Telstra app, capturing screenshots, and storing them in a Google Drive folder. By extracting text from these images and extracting date and time information from file names, I have gained insights into speed fluctuations. Now, I am expanding this section to include hourly test results from 6AM and 11PM. To streamline user experience, the [Internet speed test](https://luenhchang.shinyapps.io/internet-speed-test/) is hosted separately from this site. While processing images may slow down smartphone users, desktop users will not encounter any issues.  
+</font>
+
+## Data Challenges
+<font size="5">
+In the **Data Challenges** section, I showcase programming techniques used to generate the visualisations featured in the sections above.
+</font>
+
+## Crime trends in Queensland
+<font size="5">
+The **[Queensland Crime Trends]**(https://luenhchang.shinyapps.io/data-gov-au_police/) project visualises changes in offence numbers from 2001 to 2021 using data from the [Offender Numbers—Qld—monthly from Jan 2001](https://open-crime-data.s3-ap-southeast-2.amazonaws.com/Crime%20Statistics/QLD_Reported_Offenders_Number.csv) dataset. Interactive plots, created with the Plotly package, provide an insightful look into these trends by year, age and sex groups. 
+</font>

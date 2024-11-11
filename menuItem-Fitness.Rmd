@@ -1,0 +1,31 @@
+---
+title: "Analysing Strava activities"
+# Filepath: C:/GoogleDrive/scripts/R-shinyapp_data-in-everyday-lives/menuItem-Fitness.Rmd
+# Date created: "2024-04-21"
+# Reference 
+## [How to remove "padding" on left side of R markdown generated HTML file](https://stackoverflow.com/questions/57175174/how-to-remove-padding-on-left-side-of-r-markdown-generated-html-file)
+## [Increase width of entire HTML Rmarkdown output](https://stackoverflow.com/questions/34906002/increase-width-of-entire-html-rmarkdown-output)
+
+## Date       Changes:
+##------------------------------------------------------------------------------------------------------------------
+## 2024-05-16 Changed in YAML header 
+# output: 
+#   html_document:
+#     theme: cerulean
+#     toc: no
+# to output: html_fragment following [Displaying html file using includeHTML in shiny is not working with renderUI()](https://stackoverflow.com/questions/56064805/displaying-html-file-using-includehtml-in-shiny-is-not-working-with-renderui)
+## 2024-04-23 Revised content text by ChatGPT3.5
+##------------------------------------------------------------------------------------------------------------------
+output: html_fragment
+---
+<style>
+.main-container {
+    max-width: 1800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+</style>
+
+<font size="5">
+This webpage automatically analyses my Strava activities. To analyse your own data, first log into your Strava account on the [Strava web service](https://www.strava.com/) and perform a [Bulk Export](https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export#h_01GG58HC4F1BGQ9PQZZVANN6WF). Strava will then send you a link via email to download the export. This export contains all your uploaded data and comes in a large .zip file. The file you need to upload is **activities.csv**, which contains all your activity records. Uploading any other file may result in errors, but it provides a valuable opportunity for me to adjust my code to work with various users' data.
+</font>
