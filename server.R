@@ -1,8 +1,8 @@
 #---------------------------------------------------------------------------------------------------------
-# Program: C:/GoogleDrive/scripts/R-shinyapp_data-in-everyday-lives/server.R
-# Date created: 18-Apr-2024
+# Program: C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives/server.R
+# Date created: 13-Nov-2024
 # Author(s): Lun-Hsien Chang
-# Modified from: C:/GoogleDrive/barcode-scanner/scripts/barcode-scanner_shiny-web-app.R
+# Modified from: C:/GoogleDrive/scripts/R-shinyapp_data-in-everyday-lives/server.R
 # Dependency:
 # Local input: C:/GoogleDrive/scripts/R-shinyapp_data-in-everyday-lives/www/speed-test-printscreen_Telstra5G/*.jpg
 ## [Tree Maps Understanding and using Tree Maps](https://www.tableau.com/data-insights/reference-library/visual-analytics/charts/treemaps)

@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------------------------------------------
-# Program: C:/GoogleDrive/scripts/R-shinyapp_data-in-everyday-lives/global.R
-# Date created: 18-APR-2024
+# Program: C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives/global.R
+# Date created: 13-Nov-2024
 # Author(s): Lun-Hsien Chang
-# Modified from: C:/GoogleDrive/barcode-scanner/scripts/barcode-scanner_shiny-web-app.R
+# Modified from: C:/GoogleDrive/scripts/R-shinyapp_data-in-everyday-lives/global.R
 # Dependency:
 
 # Input: 
@@ -18,6 +18,8 @@
 ## [suppress NAs in paste()](https://stackoverflow.com/questions/13673894/suppress-nas-in-paste)
 ## Date       Changes:
 ##---------------------------------------------------------------------------------------------------------
+## 2024-11-13 Fixed error reading sheetname="hygiene-products". Error due to a new column added to the sheet not specified in googlesheets4::read_sheet(col_types = )
+## 2024-11-13 Error reading barcode-scan.gsheet sheet="food" fixed. Error due to column name timestamp accidentally edited as e during manual update in the file
 ## 2024-10-03 deployed app
 ## 2024-10-03 Updated URL to activities.csv on Google drive.
 ## 2024-06-28 Deployed app. Table Cycling elevation gain (m) in weekdays error on app but no such an error in app deployed locally
@@ -192,7 +194,7 @@ barcode.food <- googlesheets4::read_sheet(sheet.ID.barcodes
   dplyr::mutate(product.name.serial= dplyr::row_number()
                 # Combine product name and their serial numbers. String > n characters put to a new line
                 ,product.name.serial.numb.50= stringr::str_wrap(
-                  paste0(product.name, " #", product.name.serial), width=50)) # class(barcode.food) [1] "grouped_df" "tbl_df" "tbl" "data.frame" # dim(barcode.food) 255 25
+                  paste0(product.name, " #", product.name.serial), width=50)) # class(barcode.food) [1] "grouped_df" "tbl_df" "tbl" "data.frame" # dim(barcode.food) 621 25
 
 # Calculate unit price
 barcode.food.df <- as.data.frame(barcode.food) |>
@@ -430,7 +432,7 @@ food.barcode.latest.date.record <- format(
 # Read Google sheet tab= hygiene-products
 barcode.hygiene <- googlesheets4::read_sheet(ss=sheet.ID.barcodes
                                              ,sheet = "hygiene-products"
-                                             ,col_types = "TccnDDc" # T for Datetime, c for character, n for numeric, D for date 
+                                             ,col_types = "TcccnDDc" # T for Datetime, c for character, n for numeric, D for date 
                                              ,na=c("NA"," ")
                                              ) |>
   # Filter out unwanted rows. filter(x !="value") not working
@@ -449,7 +451,7 @@ barcode.hygiene <- googlesheets4::read_sheet(ss=sheet.ID.barcodes
   dplyr::mutate(product.name.serial= dplyr::row_number()
                 # Combine product name and their serial numbers. String > n characters put to a new line
                 ,product.name.serial.numb.50= stringr::str_wrap(
-                  paste0(product.name, " #", product.name.serial), width=50)) # class(barcode.hygiene) [1] "grouped_df" "tbl_df" "tbl" "data.frame" # dim(barcode.hygiene) 68 14
+                  paste0(product.name, " #", product.name.serial), width=50)) # class(barcode.hygiene) [1] "grouped_df" "tbl_df" "tbl" "data.frame" # dim(barcode.hygiene) 103 15
 
 barcode.hygiene.df <- as.data.frame(barcode.hygiene) # class(barcode.hygiene.df) [1] "data.frame"
 
