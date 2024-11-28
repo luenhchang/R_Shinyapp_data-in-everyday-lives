@@ -21,23 +21,23 @@ You can view the live app here: [Data in Everyday Lives](https://luenhchang.shin
 
 ---
 
-![Table_Expiry of foods](webapp-printscreens/Food_table_Expiry of foods.png)
+![Table_Expiry of foods](webapp-printscreens/Food_table_Expiry-of-foods.png)
 
 ---
 
-![Table Food prices](webapp-printscreens/Food_table_Food prices.png)
+![Table Food prices](webapp-printscreens/Food_table_Food-prices.png)
 
 ---
 
-![Table Food usage](webapp-printscreens/Food_table_Food usage.png)
+![Table Food usage](webapp-printscreens/Food_table_Food-usage.png)
 
 ---
 
-![Barplots Monthly spend on food categories](webapp-printscreens/Food_barplots_Monthly spend on food categories-interactive plot using plotly package.png)
+![Barplots Monthly spend on food categories](webapp-printscreens/Food_barplots_Monthly-spend-on-food-categories-interactive-plot-using-plotly-package.png)
 
 ---
 
-![Stacked barplot Container collection and refund since 2024](webapp-printscreens/Recycling_stacked-barplot_Container collection and refund since 2024.png)
+![Stacked barplot Container collection and refund since 2024](webapp-printscreens/Recycling_stacked-barplot_Container collection-and-refund-since- 2024.png)
 
 ## Technologies Used
 
@@ -60,7 +60,7 @@ You can view the live app here: [Data in Everyday Lives](https://luenhchang.shin
 
 1. Clone the repository:  
    ```bash
-   git clone C:\GoogleDrive_MyDrive\scripts\RProject_Shinyapp_data-in-everyday-lives
+   git clone  https://github.com/luenhchang/R_Shinyapp_data-in-everyday-lives.git
    ```
 
 2. Install the required R packages:
