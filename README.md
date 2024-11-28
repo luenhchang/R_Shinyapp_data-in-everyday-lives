@@ -37,7 +37,7 @@ You can view the live app here: [Data in Everyday Lives](https://luenhchang.shin
 
 ---
 
-![Stacked barplot Container collection and refund since 2024](webapp-printscreens/Recycling_stacked-barplot_Container-collection-and-refund-since- 2024.png)
+![Stacked barplot Container collection and refund since 2024](webapp-printscreens/Recycling_stacked-barplot_Container-collection-and-refund-since-2024.png)
 
 ## Technologies Used
 
