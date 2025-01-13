@@ -11,6 +11,7 @@
 ## [Horizontal Rule hr() in R Shiny Sidebar](https://stackoverflow.com/questions/43592163/horizontal-rule-hr-in-r-shiny-sidebar)
 ## Date       Changes:
 ##---------------------------------------------------------------------------------------------------------------
+## 2025-01-13 Deleted code for menuItem "Fitness", "Data Challenges"
 ## 2024-06-13 Removed menuItem Jobs
 ## 2024-05-16 Deployed app. App is launched faster in phone and all valueBoxes and infoBoxes working.
 ## 2024-05-16 Replaced in server.R shiny::renderUI({rmarkdown::render() shiny::includeHTML('menuItem-About.html')}) and uiOutput() in ui.R with includeHTML(path="html-file-path") in ui.R. The html file knitted in Rmd following [Displaying html file using includeHTML in shiny is not working with renderUI()](https://stackoverflow.com/questions/56064805/displaying-html-file-using-includehtml-in-shiny-is-not-working-with-renderui). The problem is that knitting an .Rmd file creates an HTML document with <html><head><title><body> etc. while fluidPage() does exactly the same. So including a complete HTML document into fluidPage() creates problems due to redundancy. Fortunately, there's a very easy solution: use output: html_fragment in the YAML header of your .Rmd file before knitting and saving it as .html document.   
@@ -48,8 +49,6 @@ sidebar <- shinydashboard::dashboardSidebar(
     ,shinydashboard::menuItem(text = "Food", tabName = "tabPackagedFood", icon = icon("chart-line"))
     ,shinydashboard::menuItem(text = "Bathroom", tabName = "tabHygieneProducts", icon = icon("chart-line"))
     ,shinydashboard::menuItem(text = "Recycling", tabName = "tabContainers", icon = icon("chart-line"))
-    ,shinydashboard::menuItem(text = "Fitness", tabName = "tabFitness", icon = icon("file-upload"))
-    ,shinydashboard::menuItem(text = "Data Challenges", tabName = "tabDataChallenges", icon = icon("database"))
   )
 )
 
@@ -67,25 +66,6 @@ body <- shinydashboard::dashboardBody(
           ,width=NULL)
       )
     )
-    #************************************
-    # menuItem "Data Challenges"
-    ## [How to have shiny dashboard box fill the entire width of my dashbaord](https://stackoverflow.com/questions/70689513/how-to-have-shiny-dashboard-box-fill-the-entire-width-of-my-dashbaord)
-    ## [Set font size and color in title of shinydashboard box](https://stackoverflow.com/questions/67237358/set-font-size-and-color-in-title-of-shinydashboard-box)
-    #************************************
-    ,shinydashboard::tabItem(
-      tabName = "tabDataChallenges"
-      ,fluidRow(
-        box(
-          title= h3("Everyday data challenges", style = 'font-size:50px;color:black;')
-          ,status = "primary"
-          ,width = 12
-          ,slickROutput(outputId = "image.slide.show"
-                        ,width = "100%"
-                        ,height = "100%")
-        ) # Close fluidRow()
-      ) # Close div()
-    ) # Close tabItem() for menuItem "Data"
-
     #************************************
     # menuItem "Food"
     #************************************
@@ -220,109 +200,6 @@ body <- shinydashboard::dashboardBody(
         ,shinydashboard::infoBoxOutput(outputId ="infoBox.date.latest.record.recycling" ,width = 3)
       )
     ) # Close tabItem() for menuItem "Recycling"
-    
-    #*****************************************
-    # menuItem "Fitness"
-    #*****************************************
-    ,shinydashboard::tabItem(
-       tabName = "tabFitness"
-       #--------------
-       # Markdown text
-       #--------------
-       ,fluidRow(
-         box(
-           title=""
-           #,uiOutput(outputId="markdown.menuItem.fitness")
-           ,includeHTML(path=file.path(getwd(),"menuItem-Fitness.html"))
-           ,width=NULL
-         )
-       )
-      ,fluidRow(
-        inputPanel(
-          fileInput(inputId="file1"
-                    ,label = "Click Browse to upload the activities.csv file"
-                    #,label = stringr::str_wrap("Download activities.csv from your Strava account. Click Browse to upload the CSV file", width = 50) # no effect on wrapping text to two lines
-                    ,multiple = FALSE
-                    ,accept = ".csv")
-        ) # Close inputPanel()
-      ) # Close fluidRow()
-      ,fluidRow(
-         shinydashboard::valueBoxOutput(outputId = "valueBox.years.in.sport", width = 2)
-        ,shinydashboard::valueBoxOutput(outputId ="valueBox.number.days.active", width = 2)
-        ,shinydashboard::valueBoxOutput(outputId = "valueBox.total.moving.time", width = 2)
-        ,shinydashboard::valueBoxOutput(outputId = "valueBox.total.cycling.distance", width = 2)
-        ,shinydashboard::valueBoxOutput(outputId = "valueBox.total.cycling.elevation", width = 2)
-      )
-      ,fluidRow(
-        box(title="Moving time (h) in single activities in 2023"
-            ,status="primary"
-            ,solidHeader=TRUE
-            ,width = 12 # By default box is set to width = 6. full width = 12
-            ,height = 455 # Plot can go outside box border if height too small # White space if height too big
-            ,plotOutput(outputId="plot.barplot.activity.moving.time"))
-        ) # Close fluidRow
-      ,fluidRow(
-        box(title="Moving time (h) in single activities in 2023"
-            ,status="primary"
-            ,solidHeader=TRUE
-            ,collapsible = TRUE
-            ,width = 1.5*6 # By default box is set to width = 6. full width = 12
-            ,height = 550 # Plot can go outside box border if height too small # White space if height too big
-            ,dataTableOutput(outputId="table.barplot.daily.moving.time.DT"))
-      ) # Close fluidRow
-      # Add a horizontal rule between fluidRow
-      ## color code for gray50 #7f7f7f, gray25 #404040
-      ,hr(style = "border-top: 5px solid #404040;") 
-      ,fluidRow(
-         shinydashboard::infoBoxOutput(outputId = "infoBox.weekday.greatest.number.rides.2022",width = 4)
-        ,shinydashboard::infoBoxOutput(outputId = "infoBox.weekday.longest.ride.distance.2022",width = 4)
-        ,shinydashboard::infoBoxOutput(outputId = "infoBox.weekday.greatest.ride.elevation.2022",width = 4)
-        ,shinydashboard::infoBoxOutput(outputId = "infoBox.weekday.greatest.number.rides.2023",width = 4)
-        ,shinydashboard::infoBoxOutput(outputId = "infoBox.weekday.longest.ride.distance.2023",width = 4)
-        ,shinydashboard::infoBoxOutput(outputId = "infoBox.weekday.greatest.ride.elevation.2023",width = 4)
-      ) # Close fluidRow()
-      ,fluidRow(
-        box(title="Cumulative cycling distance (km)"
-            ,status="primary"
-            ,solidHeader=TRUE
-            ,width = 5 # By default box is set to width = 6. full width = 12
-            ,plotOutput(outputId="plot.lineplot.ride.distance"))
-        ,box(title="Cycling distance (km) in weekdays"
-            ,status="primary"
-            ,solidHeader=TRUE
-            ,width = 6 # By default box is set to width = 6. full width = 12
-            ,height = 475 # Plot can go outside box border if height too small # White space if height too big
-            ,plotOutput(outputId="plot.calendar.heatmap.ride.distance"))
-      ) # Close fluidRow()
-      ,fluidRow(
-        box(title="Cumulative cycling elevation gain (m)"
-            ,status="primary"
-            ,solidHeader=TRUE
-            ,width = 5 # By default box is set to width = 6. full width = 12
-            ,plotOutput(outputId="plot.lineplot.ride.elevation"))
-        ,box(title="Cycling elevation gain (m) in weekdays"
-            ,status="primary"
-            ,solidHeader=TRUE
-            ,width = 6 # By default box is set to width = 6. full width = 12
-            ,height = 475 # Plot can go outside box border if height too small # White space if height too big
-            ,plotOutput(outputId="plot.calendar.heatmap.ride.elevation"))
-      ) # Close fluidRow
-      ,fluidRow(
-        box(title="Running totals of cycling distance (km) and elevation gain (m)"
-             ,status="primary"
-             ,solidHeader=TRUE
-             ,collapsible = TRUE
-             ,width = 6 # By default box is set to width = 6. full width = 12
-             ,dataTableOutput(outputId="table.lineplot.ride.distance.elevation.DT"))
-        ,box(title = "Best effort in distance and elevation gain"
-             ,status = "primary"
-             ,solidHeader = TRUE
-             ,collapsible = TRUE
-             ,width = 6
-             ,dataTableOutput(outputId="table.year.ride.max.distance.elevation.DT"))
-      )# Close fluidRow
-      ) # Close tabItem() for menuItem "Fitness"
-    
   ) # Close tabItems
 ) # Close dashboardBody()
 

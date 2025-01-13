@@ -67,3 +67,10 @@ You can view the live app here: [Data in Everyday Lives](https://luenhchang.shin
 ```r
 	install.packages(c("shiny", "shinydashboard", "dplyr", "ggplot2", "plotly", "treemapify", "DT", "rmarkdown", "tidyverse", "magick"))
 ```
+
+## Update
+**2025-01-13**:
+* Removed code for menuItem Fitness, Data Challenges, Job
+* Created functions.R
+
+

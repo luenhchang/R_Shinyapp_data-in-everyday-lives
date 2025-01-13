@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------
 # Program: C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives/global.R
 # Date created: 13-Nov-2024
 # Author(s): Lun-Hsien Chang
@@ -18,6 +18,7 @@
 ## [suppress NAs in paste()](https://stackoverflow.com/questions/13673894/suppress-nas-in-paste)
 ## Date       Changes:
 ##---------------------------------------------------------------------------------------------------------
+## 2025-01-13 Deleted menuItem="JOb"
 ## 2024-11-13 Fixed error reading sheetname="hygiene-products". Error due to a new column added to the sheet not specified in googlesheets4::read_sheet(col_types = )
 ## 2024-11-13 Error reading barcode-scan.gsheet sheet="food" fixed. Error due to column name timestamp accidentally edited as e during manual update in the file
 ## 2024-10-03 deployed app
@@ -52,12 +53,12 @@
 ## 2024-04-18 [2024-04-18 10:43:40.436219] Deployment log finished ✔ Successfully deployed to <https://luenhchang.shinyapps.io/data-on-everyday-lives/> Deployment completed: https://luenhchang.shinyapps.io/data-on-everyday-lives/
 ## 2024-04-18 Error in `POST()`: ! <https://api.shinyapps.io/v1/applications/> failed with HTTP status 402 You have reached the maximum number of applications allowed for your account.
 ## 2024-04-18 Split barcode-scanner_shiny-web-app.R into separate files global.R, server.R, ui.R because app.R files are becoming very complex and crowded
-##------------------------------------------------------------------------------------------------------------------
+##----------------------------------------------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------
 # Load R packages
 ## Required uninstalled packages in local PC will cause errors library(pkg) is not available while deploying app to shinyapps.io
-#------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------
 library(shiny)
 library(shinydashboard)
 library(shinyWidgets)
@@ -123,8 +124,8 @@ library(ggforce)
 ## 
 ## www: Where all the images and other assets needed for the viewer
 #------------------------------------------------------------------------
-# dir.C <- "C:"
-# dir.app <- file.path(dir.C, "GoogleDrive","scripts","R-shinyapp_data-in-everyday-lives")
+dir.C <- "C:"
+dir.app <- file.path(dir.C,"GoogleDrive_MyDrive","scripts","RProject_Shinyapp_data-in-everyday-lives")
 # dir.www <- file.path(dir.app,"www")
 # dir.create(path = dir.www)
 # dir.img <- file.path(dir.www,"image_data-challenges")
@@ -633,41 +634,6 @@ numb.all.containers.refunded <- my_comma(totals$total[2])
 
 date.earliest.record.recycling <- format(min(containers.2024$date.of.activity, na.rm = TRUE), "%d %B %Y")
 date.latest.record.recycling <- format(max(containers.2024$date.of.activity, na.rm = TRUE),"%d %B %Y")
-
-#*****************************************
-# Read data to use under menuItem "Jobs" 
-## Input: text copied from Google keep note
-#*****************************************
-
-# Plot event log dates per ID
-jobs.current <- "company, position title, reference number, event, start date
-Greenlight Clinical, Statistical programmer, NA, employment, 2021-09-27
-Queensland Health, Senior Data Scientist, QLD/CPSS547629, submitted application, 2024-03-12
-Australian Signals Directorate, Data Analytic Engineer, ASD/01826/24, submitted application, 2024-04-17
-CRO through i-Pharm Consulting, Statistical Programmer II, NA, submitted application, 2024-04-23
-Green Light Worldwide, Data Analyst (security clearance), BH-18098-3, no longer accepting applications, 2024-04-26
-Queensland Police Service, Senior Statistical Analyst, QLD/559041/24,submitted application, 2024-04-30
-Logan Together, Data Analyst, NA, application sent through LinkedIn, 2024-05-03
-Abano Healthcare Group, Data Analyst, NA, application sent through LinkedIn, 2024-05-04"
-
-jobs.past <- "company, position title, reference number, event, start date, end date
-University of Queensland, PhD student, NA, employment, 2016-04-05, 2020-05-11
-QIMR Berghofer Medical Research Institute, Research Officer, NA, employment, 2020-04-27, 2021-11-09"
-
-jobs.current.df <- read.table(text = jobs.current, sep = ",", header = TRUE, na.strings = "NA") |>
-  dplyr::mutate(  event.start.date=lubridate::ymd(start.date)
-                 ,event.end.date=Sys.Date()
-                 ,event.duration.days=difftime(time1=event.end.date, time2=event.start.date, units = "days")) |>
-  dplyr::select(-start.date) # dim(jobs.current.df) 8 7
-
-jobs.past.df <- read.table(text = jobs.past, sep = ",", header = TRUE, na.strings = "NA") |>
-  dplyr::mutate(event.start.date=lubridate::ymd(start.date)
-                ,event.end.date=lubridate::ymd(end.date)
-                ,event.duration.days=difftime(time1=event.end.date, time2=event.start.date, units = "days")) |>
-  dplyr::select(-start.date,-end.date) # dim(jobs.past.df) 2 7
-
-jobs <- dplyr::bind_rows(jobs.current.df, jobs.past.df) |> 
-  dplyr::arrange(desc(event.start.date))
 
 #---------------------------
 # Check shinyapps.io account
