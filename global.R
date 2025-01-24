@@ -506,7 +506,7 @@ summed.price.hygiene <- format(round(sum(barcode.hygiene.df$price, na.rm = TRUE)
 sheet_id <- "https://docs.google.com/spreadsheets/d/1Q_oxLE1cl_r9gksXX4R9YGnC2nGZBy3M1hf3-JR2ZIw/"
 
 # Data is one row per data entry
-containers.2024 <- googlesheets4::read_sheet(sheet_id) |>
+containers <- googlesheets4::read_sheet(sheet_id) |>
   as.data.frame() |>
   dplyr::mutate(activities=Activities
                 ,timestamp=as.POSIXct(x=Timestamp, format="%Y-%m-%d %H:%M:%S")
@@ -543,11 +543,11 @@ containers.2024 <- googlesheets4::read_sheet(sheet_id) |>
     #                               ,activities=="Collection"~ number.all.types)
     #,numb.PET.stock=ave(number.PET, cumsum(number.PET.reset=="yes"), FUN = cumsum)
     #,numb.all.containers.stock=ave(number.all.types.2, cumsum(number.all.types.2==0), FUN=cumsum)
-    ) # Close mutate() # class(containers.2024) [1] "data.frame" # dim(containers.2024) 335 15
+    ) # Close mutate() # class(containers) [1] "data.frame" # dim(containers) 457 15
 
 # Calculate daily number of containers 
 ## Adding multiple collections to one number per day
-containers.daily.wide <- containers.2024 |>
+containers.daily.wide <- containers |>
   dplyr::group_by(activities, date.of.activity) |>
   dplyr::summarise( number.PET.day=sum(number.PET, na.rm = TRUE)
                    ,number.cans.day=sum(number.cans, na.rm = TRUE)
@@ -557,7 +557,7 @@ containers.daily.wide <- containers.2024 |>
                    # suppress NAs in paste()
                    ,note=paste(ifelse(is.na(Note),"", Note), collapse = "\n")
                    ) |>
-  dplyr::mutate(weeks=as.numeric(difftime(date.of.activity, min(date.of.activity), units = "weeks"))) # dim(containers.daily.wide) 178 9
+  dplyr::mutate(weeks=as.numeric(difftime(date.of.activity, min(date.of.activity), units = "weeks"))) # dim(containers.daily.wide) 266 9
 
 # Daily collection or refund in long format
 containers.daily.long <- tidyr::pivot_longer(
@@ -574,12 +574,12 @@ containers.daily.long <- tidyr::pivot_longer(
     # Set 0 to missing
     ,container.number.label=dplyr::case_when(
       container.number.adjusted==0 ~ NA_integer_
-      ,TRUE ~ container.number.adjusted)) # dim(containers.daily.long) 890 7
+      ,TRUE ~ container.number.adjusted)) # dim(containers.daily.long) 1330 8
 
 # Data used to create stacked bar plot
 ## Data structure: 1 row per activities, date of activity, container type
 containers.daily.long.not.all.types <- containers.daily.long |> 
-  dplyr::filter(container.type !="all.types") # dim(containers.daily.long.not.all.types) 712 7
+  dplyr::filter(container.type !="all.types") # dim(containers.daily.long.not.all.types) 1064 8
 
 # Calculate total containers per day regardless of types
 ## This is used to place number on top of each stacked bar
@@ -590,10 +590,10 @@ totals.all.types <- containers.daily.long.not.all.types |>
   dplyr::mutate(
     # Set total >=10 or <0 to be printed, total of 0 to 9 to be missing
     total.label=dplyr::case_when(total %in% c(0:9) ~ NA_integer_
-                                 ,TRUE ~ total)) # dim(totals.all.types) 178 4
+                                 ,TRUE ~ total)) # dim(totals.all.types) 266 4
 
 # Calculate total number of collected or refunded containers
-totals <- containers.2024 |> 
+totals <- containers |> 
   dplyr::group_by(activities) |>
   dplyr::summarise(total.PET=sum(number.PET, na.rm = TRUE)
                    ,total.cans=sum(number.cans, na.rm = TRUE)
@@ -605,16 +605,47 @@ totals <- containers.2024 |>
   dplyr::mutate(total=sum(dplyr::c_across(tidyselect::starts_with("total.")), na.rm = TRUE)) # dim(totals) 2 7
 
 #-----------------------------------------------------
+# Create subsets by years
+#-----------------------------------------------------
+
+#-----
+# 2025
+#-----
+## Data used in Recycling stacked bar plots
+containers.daily.long.not.all.types.2025 <- containers.daily.long.not.all.types %>% 
+  dplyr::filter(dplyr::between(x=date.of.activity
+                               ,left= as.Date("2025-01-01")
+                               ,right=as.Date("2025-12-31"))) # dim(containers.daily.long.not.all.types.2025) 12 8
+
+totals.all.types.2025 <- totals.all.types %>% 
+  dplyr::filter(dplyr::between(x=date.of.activity
+                               ,left= as.Date("2025-01-01")
+                               ,right=as.Date("2025-12-31"))) # dim(totals.all.types.2025) 3 4
+#-----
+# 2024
+#-----
+## Data used in Recycling stacked bar plots
+containers.daily.long.not.all.types.2024 <- containers.daily.long.not.all.types %>% 
+  dplyr::filter(dplyr::between(x=date.of.activity
+                               ,left= as.Date("2024-01-01")
+                               ,right=as.Date("2024-12-31"))) # dim(containers.daily.long.not.all.types.2024) 1052 8
+
+totals.all.types.2024 <- totals.all.types %>% 
+  dplyr::filter(dplyr::between(x=date.of.activity
+                               ,left= as.Date("2024-01-01")
+                               ,right=as.Date("2024-12-31"))) # dim(totals.all.types.2024) 263 4
+
+#-----------------------------------------------------
 # Compute values to use in Recycling valueBox, infoBox
 #-----------------------------------------------------
 # Function to format numbers
 my_comma <- scales::label_comma(accuracy = 1, big.mark = ",", decimal.mark = ".")
 
-numb.PET.stock <- tail(containers.2024$numb.PET.stock, n=1)
-numb.cans.stock <- tail(containers.2024$numb.cans.stock, n=1) 
-numb.glass.stock <- tail(containers.2024$numb.glass.stock, n=1)
-numb.carton.stock <- tail(containers.2024$numb.carton.stock, n=1)
-numb.all.containers.stock <- tail(containers.2024$numb.all.containers.stock,n=1)
+numb.PET.stock <- tail(containers$numb.PET.stock, n=1)
+numb.cans.stock <- tail(containers$numb.cans.stock, n=1) 
+numb.glass.stock <- tail(containers$numb.glass.stock, n=1)
+numb.carton.stock <- tail(containers$numb.carton.stock, n=1)
+numb.all.containers.stock <- tail(containers$numb.all.containers.stock,n=1)
 
 numb.collections.made <- totals$number.activities[1]
 
@@ -632,8 +663,8 @@ numb.glass.refunded <- my_comma(totals$total.glass[2])
 numb.carton.refunded <- my_comma(totals$total.carton[2])
 numb.all.containers.refunded <- my_comma(totals$total[2])
 
-date.earliest.record.recycling <- format(min(containers.2024$date.of.activity, na.rm = TRUE), "%d %B %Y")
-date.latest.record.recycling <- format(max(containers.2024$date.of.activity, na.rm = TRUE),"%d %B %Y")
+date.earliest.record.recycling <- format(min(containers$date.of.activity, na.rm = TRUE), "%d %B %Y")
+date.latest.record.recycling <- format(max(containers$date.of.activity, na.rm = TRUE),"%d %B %Y")
 
 #---------------------------
 # Check shinyapps.io account

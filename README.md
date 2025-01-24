@@ -69,6 +69,9 @@ You can view the live app here: [Data in Everyday Lives](https://luenhchang.shin
 ```
 
 ## Update
+**2025-01-24**:
+* Added number of container collected or refunded in 2025 stacked bar plot using plotly
+
 **2025-01-13**:
 * Removed code for menuItem Fitness, Data Challenges, Job
 * Created functions.R

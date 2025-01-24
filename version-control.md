@@ -144,3 +144,11 @@ git commit -m "Added functions.R, updated global.R, server.R, ui.R, README.md"
 git push origin main
 ```
 
+## 2025-01-24
+```bash
+cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
+git add .
+git commit -m "Added number of container collected or refunded in 2025 stacked bar plot using plotly"
+git push origin main
+```
+

@@ -319,8 +319,67 @@ server <- function(input, output, session) {
   #-----------------------
   # Output plots
   #-----------------------
-  ## Rendering, in web development, is the process of converting code into viewable, interactive web content.
-  output$plot.stacked.bars.containers <- shiny::renderPlot({
+  
+  #-----------------------------------
+  # 2025 stacked bar plot using plotly
+  #-----------------------------------
+  output$plot.stacked.bars.containers.2025 <- plotly::renderPlotly({
+    #--------------------------------------------------
+    # Create stacked bar plot using plotly without add_trace
+    #--------------------------------------------------
+    
+    # Colors for different container types
+    colors <- as.vector(pals::glasbey(n = 11))[c(8, 2, 9, 11)]
+    
+    # Prepare data for plotly
+    data <- containers.daily.long.not.all.types.2025 %>%
+      dplyr::mutate(container.type = factor(container.type, levels = c("PET", "cans", "glass", "carton")))
+    
+    # Calculate total labels directly in the data
+    totals <- containers.daily.long.not.all.types.2025 %>%
+      dplyr::group_by(date.of.activity) %>%
+      dplyr::summarize(total = sum(container.number.adjusted)) %>%
+      dplyr::mutate(total.label = as.character(total))
+    
+    # Merge totals back into the main data
+    data <- dplyr::left_join(data, totals, by = "date.of.activity")
+    
+    # Create the stacked bar plot
+    plot <- plotly::plot_ly(data, 
+                            x = ~date.of.activity, 
+                            y = ~container.number.adjusted,
+                            color = ~container.type,
+                            colors = colors,
+                            type = "bar",
+                            text = ~ifelse(container.type == "carton", total.label, NA),
+                            textposition = "outside",
+                            textfont = list(size = 12)) %>%
+      plotly::layout(
+        barmode = "stack",
+        xaxis = list(
+          title = "",
+          tickformat = "%b-%Y", # Format for month-year
+          dtick = "M1"         # Show ticks monthly
+        ),
+        yaxis = list(
+          title = "Number of containers",
+          tickvals = seq(0, 300, 50) # Breaks on Y-axis
+        ),
+        legend = list(
+          title = list(text = "Container type"),
+          orientation = "h",    # Horizontal legend
+          x = 0,                # Left-align legend
+          y = 1.1               # Place above plot
+        )
+      )
+    
+    plot
+  })
+  
+  #------------------------------------
+  # 2024 stacked bar plot using ggplot2
+  #------------------------------------
+  output$plot.stacked.bars.containers.2024 <- shiny::renderPlot({
     #--------------------------------------------------
     # Create upside down and bottom up stacked bar plot
     #--------------------------------------------------
@@ -339,8 +398,8 @@ server <- function(input, output, session) {
     plot.legend.label.ordered <- c("Plastic bottles","Cans","Glass bottles","Carton") # length(plot.legend.ordered) 4
     
     # Create a stacked bar plot with total number placed on top over each bar
-    ggplot2::ggplot(data=containers.daily.long.not.all.types
-                    ,aes(x=date.of.activity
+    ggplot2::ggplot(data=containers.daily.long.not.all.types.2024
+                    ,aes( x=date.of.activity
                          ,y=container.number.adjusted
                          ,label=container.number.adjusted)) +
       # geom_col() as a shortcut for geom_bar(stat = "identity")
@@ -350,7 +409,7 @@ server <- function(input, output, session) {
         # Control transparency of bar color
         ,alpha=0.6)+
       # Draw sum number above the stacked bars using another dataset totals.all.types
-      ggplot2::geom_text(data=totals.all.types
+      ggplot2::geom_text(data=totals.all.types.2024
                          ,aes(x=date.of.activity, y=total, label=total.label, fill=NULL)
                          ,vjust=0.5
                          ,size=5

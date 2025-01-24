@@ -180,12 +180,20 @@ body <- shinydashboard::dashboardBody(
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.refunded", width = 3)
       ) # Close fluidRow
       ,fluidRow(
-        box(title="Container collection and refund since 2024"
+        box(title="Container collection and refund in 2025"
             ,status="primary"
             ,solidHeader=TRUE
             ,width = 12 # By default box is set to width = 6. full width = 12
             ,height = 455 # Plot can go outside box border if height too small # White space if height too big
-            ,plotOutput(outputId="plot.stacked.bars.containers"))
+            ,plotlyOutput(outputId="plot.stacked.bars.containers.2025"))
+      ) # Close fluidRow
+      ,fluidRow(
+        box(title="Container collection and refund in 2024"
+            ,status="primary"
+            ,solidHeader=TRUE
+            ,width = 12 # By default box is set to width = 6. full width = 12
+            ,height = 455 # Plot can go outside box border if height too small # White space if height too big
+            ,plotOutput(outputId="plot.stacked.bars.containers.2024"))
         ) # Close fluidRow
       ,fluidRow(
         box(title = "Number of containers collected or refunded per day"
