@@ -661,7 +661,7 @@ totals.2024 <- containers %>%
 #-----------------------------------------------------
 # Compute values to use in Recycling valueBox, infoBox
 #-----------------------------------------------------
-
+# Current stock
 numb.PET.stock <- tail(containers$numb.PET.stock, n=1)
 numb.cans.stock <- tail(containers$numb.cans.stock, n=1) 
 numb.glass.stock <- tail(containers$numb.glass.stock, n=1)
@@ -669,41 +669,28 @@ numb.carton.stock <- tail(containers$numb.carton.stock, n=1)
 
 numb.all.containers.stock <- tail(containers$numb.all.containers.stock,n=1)
 
-#numb.collections.made <- totals$number.activities[1]
-
-#numb.PET.collected <- my_comma(totals$total.PET[1])
+# 2025, 2024
 numb.PET.collected.2025 <- function.comma.to.thousands(totals.2025$total.PET[1])
 numb.PET.collected.2024 <- function.comma.to.thousands(totals.2024$total.PET[1])
 
-#numb.cans.collected <- my_comma(totals$total.cans[1])
 numb.cans.collected.2025 <- function.comma.to.thousands(totals.2025$total.cans[1])
 numb.cans.collected.2024 <- function.comma.to.thousands(totals.2024$total.cans[1])
 
-#numb.glass.collected <- my_comma(totals$total.glass[1])
 numb.glass.collected.2025 <- function.comma.to.thousands(totals.2025$total.glass[1])
 numb.glass.collected.2024 <- function.comma.to.thousands(totals.2024$total.glass[1])
 
-#numb.carton.collected <- my_comma(totals$total.carton[1])
 numb.carton.collected.2025 <- function.comma.to.thousands(totals.2025$total.carton[1])
 numb.carton.collected.2024 <- function.comma.to.thousands(totals.2024$total.carton[1])
 
-numb.all.containers.collected <- my_comma(totals$total[1])
-
-numb.refunds.received <- totals$number.activities[2]
-
-#numb.PET.refunded <- my_comma(totals$total.PET[2])
 numb.PET.refunded.2025 <-  function.comma.to.thousands(totals.2025$total.PET[2])
 numb.PET.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.PET[2])
 
-#numb.cans.refunded <- my_comma(totals$total.cans[2])
 numb.cans.refunded.2025 <-  function.comma.to.thousands(totals.2025$total.cans[2])
 numb.cans.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.cans[2])
 
-#numb.glass.refunded <- my_comma(totals$total.glass[2])
 numb.glass.refunded.2025 <-  function.comma.to.thousands(totals.2025$total.glass[2])
 numb.glass.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.glass[2])
 
-#numb.carton.refunded <- my_comma(totals$total.carton[2])
 numb.carton.refunded.2025 <-  function.comma.to.thousands(totals.2025$total.carton[2])
 numb.carton.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.carton[2])
 

@@ -52,6 +52,12 @@ sidebar <- shinydashboard::dashboardSidebar(
   )
 )
 
+# Level 1 header style
+style.header <- "text-align: left; padding-bottom: 10px; 
+                 font-family: 'Roboto', sans-serif; 
+                 font-weight: bold; 
+                 color: #000000;"  # Pure black without text shadow
+
 body <- shinydashboard::dashboardBody(
   shinydashboard::tabItems(
     #************************************
@@ -178,7 +184,13 @@ body <- shinydashboard::dashboardBody(
       ) # Close fluidRow
     # 2025
       ,fluidRow(
-        shinydashboard::valueBoxOutput(outputId = "valueBox.numb.collections.made.2025", width = 2)
+        # Add a title row left-aligned
+        column(
+          width = 12,
+          tags$h1("This Year's Container Recycling", style = style.header)
+        )
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.year.in.container.collection.2025", width = 2)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.collections.made.2025", width = 2)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.collected.2025", width = 3)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.refunds.received.2025", width = 2)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.refunded.2025", width = 3)
@@ -193,7 +205,13 @@ body <- shinydashboard::dashboardBody(
       ) # Close fluidRow
     # 2024
       ,fluidRow(
-         shinydashboard::valueBoxOutput(outputId = "valueBox.numb.collections.made.2024", width = 2)
+        # Add a title row left-aligned
+        column(
+          width = 12,
+          tags$h1("Pass Years' Container Recycling", style = style.header)
+        )
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.year.in.container.collection.2024", width = 2)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.collections.made.2024", width = 2)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.collected.2024", width = 3)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.refunds.received.2024", width = 2)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.refunded.2024", width = 3)

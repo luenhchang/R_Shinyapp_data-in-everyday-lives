@@ -282,40 +282,7 @@ server <- function(input, output, session) {
                                                          ,"<b>",numb.glass.stock," glass bottles","</b>", br()
                                                          ,"<b>",numb.carton.stock," carton","</b>")
                                                   ) # Close HTML()
-                          )
-  # function.renderValueBox(shiny_output = output
-  #                         ,output.id = "valueBox.numb.collections.made"
-  #                         ,argument.value = numb.collections.made
-  #                         ,argument.subtitle = "Collections made"
-  #                         )
-  # 
-  # function.renderValueBox(shiny_output = output
-  #                         ,output.id = "valueBox.numb.containers.collected"
-  #                         ,argument.value = numb.all.containers.collected
-  #                         ,argument.subtitle = HTML(
-  #                           paste0("Containers collected, including",br()
-  #                                  ,"<b>", numb.PET.collected," plastic bottles","</b>", br()
-  #                                  ,"<b>", numb.cans.collected," cans","</b>", br()
-  #                                  ,"<b>", numb.glass.collected, " glass bottles","</b>", br()
-  #                                  ,"<b>", numb.carton.collected, " carton","</b>")
-  #                           ) # Close HTML()
-  #                         )
-  # function.renderValueBox(shiny_output = output
-  #                         ,output.id = "valueBox.numb.refunds.received"
-  #                         ,argument.value = numb.refunds.received
-  #                         ,argument.subtitle = "Refunds received")
-  # 
-  # function.renderValueBox(shiny_output = output
-  #                         ,output.id = "valueBox.numb.containers.refunded"
-  #                         ,argument.value = numb.all.containers.refunded
-  #                         ,argument.subtitle = HTML(
-  #                           paste0("Containers refunded, including", br()
-  #                                  ,"<b>", numb.PET.refunded," plastic bottles","</b>", br()
-  #                                  ,"<b>", numb.cans.refunded," cans","</b>", br()
-  #                                  ,"<b>", numb.glass.refunded, " glass bottles","</b>", br()
-  #                                  ,"<b>", numb.carton.refunded, " carton","</b>")
-  #                           ) # Close HTML()
-  #                         )
+                          ,argument.color="black")
   #-----------------------
   # Output plots
   #-----------------------
@@ -325,6 +292,11 @@ server <- function(input, output, session) {
   # Valid colors are: red, yellow, aqua, blue, light-blue, green, navy, teal, olive, lime, orange, fuchsia, purple, maroon, black.
   ## [How to break line inside a paste0() function in shiny dashboard](https://stackoverflow.com/questions/51079153/how-to-break-line-inside-a-paste0-function-in-shiny-dashboard)
   #----------------
+  function.renderValueBox(shiny_output = output
+                          ,output.id="valueBox.year.in.container.collection.2025"
+                          ,argument.value=unique(lubridate::year(containers.2025$date.of.activity))
+                          ,argument.subtitle="Year in collection")
+  
   function.renderValueBox(shiny_output = output
                           ,output.id = "valueBox.numb.collections.made.2025"
                           ,argument.value = totals.2025$number.activities[1]
@@ -343,7 +315,7 @@ server <- function(input, output, session) {
   )
   function.renderValueBox(shiny_output = output
                           ,output.id = "valueBox.numb.refunds.received.2025"
-                          ,argument.value = totals.2025$number.activities[2] #numb.refunds.received
+                          ,argument.value = totals.2025$number.activities[2] 
                           ,argument.subtitle = "Refunds received")
   
   function.renderValueBox(shiny_output = output
@@ -420,6 +392,11 @@ server <- function(input, output, session) {
   ## [How to break line inside a paste0() function in shiny dashboard](https://stackoverflow.com/questions/51079153/how-to-break-line-inside-a-paste0-function-in-shiny-dashboard)
   #----------------
   function.renderValueBox(shiny_output = output
+                          ,output.id="valueBox.year.in.container.collection.2024"
+                          ,argument.value=unique(lubridate::year(containers.2024$date.of.activity))
+                          ,argument.subtitle="Year in collection")
+  
+  function.renderValueBox(shiny_output = output
                           ,output.id = "valueBox.numb.collections.made.2024"
                           ,argument.value = totals.2024$number.activities[1]
                           ,argument.subtitle = "Collections made")
@@ -437,7 +414,7 @@ server <- function(input, output, session) {
   )
   function.renderValueBox(shiny_output = output
                           ,output.id = "valueBox.numb.refunds.received.2024"
-                          ,argument.value = totals.2024$number.activities[2] #numb.refunds.received
+                          ,argument.value = totals.2024$number.activities[2]
                           ,argument.subtitle = "Refunds received")
   
   function.renderValueBox(shiny_output = output
