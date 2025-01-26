@@ -269,7 +269,7 @@ server <- function(input, output, session) {
   #**********************************************
   
   #----------------
-  # Output valueBox
+  # Current stock valueBox
   # Valid colors are: red, yellow, aqua, blue, light-blue, green, navy, teal, olive, lime, orange, fuchsia, purple, maroon, black.
   ## [How to break line inside a paste0() function in shiny dashboard](https://stackoverflow.com/questions/51079153/how-to-break-line-inside-a-paste0-function-in-shiny-dashboard)
   #----------------
@@ -283,42 +283,80 @@ server <- function(input, output, session) {
                                                          ,"<b>",numb.carton.stock," carton","</b>")
                                                   ) # Close HTML()
                           )
-  function.renderValueBox(shiny_output = output
-                          ,output.id = "valueBox.numb.collections.made"
-                          ,argument.value = numb.collections.made
-                          ,argument.subtitle = "Collections made"
-                          )
-  
-  function.renderValueBox(shiny_output = output
-                          ,output.id = "valueBox.numb.containers.collected"
-                          ,argument.value = numb.all.containers.collected
-                          ,argument.subtitle = HTML(
-                            paste0("Containers collected, including",br()
-                                   ,"<b>", numb.PET.collected," plastic bottles","</b>", br()
-                                   ,"<b>", numb.cans.collected," cans","</b>", br()
-                                   ,"<b>", numb.glass.collected, " glass bottles","</b>", br()
-                                   ,"<b>", numb.carton.collected, " carton","</b>")
-                            ) # Close HTML()
-                          )
-  function.renderValueBox(shiny_output = output
-                          ,output.id = "valueBox.numb.refunds.received"
-                          ,argument.value = numb.refunds.received
-                          ,argument.subtitle = "Refunds received")
-  
-  function.renderValueBox(shiny_output = output
-                          ,output.id = "valueBox.numb.containers.refunded"
-                          ,argument.value = numb.all.containers.refunded
-                          ,argument.subtitle = HTML(
-                            paste0("Containers refunded, including", br()
-                                   ,"<b>", numb.PET.refunded," plastic bottles","</b>", br()
-                                   ,"<b>", numb.cans.refunded," cans","</b>", br()
-                                   ,"<b>", numb.glass.refunded, " glass bottles","</b>", br()
-                                   ,"<b>", numb.carton.refunded, " carton","</b>")
-                            ) # Close HTML()
-                          )
+  # function.renderValueBox(shiny_output = output
+  #                         ,output.id = "valueBox.numb.collections.made"
+  #                         ,argument.value = numb.collections.made
+  #                         ,argument.subtitle = "Collections made"
+  #                         )
+  # 
+  # function.renderValueBox(shiny_output = output
+  #                         ,output.id = "valueBox.numb.containers.collected"
+  #                         ,argument.value = numb.all.containers.collected
+  #                         ,argument.subtitle = HTML(
+  #                           paste0("Containers collected, including",br()
+  #                                  ,"<b>", numb.PET.collected," plastic bottles","</b>", br()
+  #                                  ,"<b>", numb.cans.collected," cans","</b>", br()
+  #                                  ,"<b>", numb.glass.collected, " glass bottles","</b>", br()
+  #                                  ,"<b>", numb.carton.collected, " carton","</b>")
+  #                           ) # Close HTML()
+  #                         )
+  # function.renderValueBox(shiny_output = output
+  #                         ,output.id = "valueBox.numb.refunds.received"
+  #                         ,argument.value = numb.refunds.received
+  #                         ,argument.subtitle = "Refunds received")
+  # 
+  # function.renderValueBox(shiny_output = output
+  #                         ,output.id = "valueBox.numb.containers.refunded"
+  #                         ,argument.value = numb.all.containers.refunded
+  #                         ,argument.subtitle = HTML(
+  #                           paste0("Containers refunded, including", br()
+  #                                  ,"<b>", numb.PET.refunded," plastic bottles","</b>", br()
+  #                                  ,"<b>", numb.cans.refunded," cans","</b>", br()
+  #                                  ,"<b>", numb.glass.refunded, " glass bottles","</b>", br()
+  #                                  ,"<b>", numb.carton.refunded, " carton","</b>")
+  #                           ) # Close HTML()
+  #                         )
   #-----------------------
   # Output plots
   #-----------------------
+  
+  #----------------
+  # 2025 valueBoxes
+  # Valid colors are: red, yellow, aqua, blue, light-blue, green, navy, teal, olive, lime, orange, fuchsia, purple, maroon, black.
+  ## [How to break line inside a paste0() function in shiny dashboard](https://stackoverflow.com/questions/51079153/how-to-break-line-inside-a-paste0-function-in-shiny-dashboard)
+  #----------------
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.numb.collections.made.2025"
+                          ,argument.value = totals.2025$number.activities[1]
+                          ,argument.subtitle = "Collections made")
+  
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.numb.containers.collected.2025"
+                          ,argument.value = function.comma.to.thousands(totals.2025$total[1]) #numb.all.containers.collected
+                          ,argument.subtitle = HTML(
+                            paste0("Containers collected, including",br()
+                                   ,"<b>", numb.PET.collected.2025," plastic bottles","</b>", br()
+                                   ,"<b>", numb.cans.collected.2025," cans","</b>", br()
+                                   ,"<b>", numb.glass.collected.2025, " glass bottles","</b>", br()
+                                   ,"<b>", numb.carton.collected.2025, " carton","</b>")
+                          ) # Close HTML()
+  )
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.numb.refunds.received.2025"
+                          ,argument.value = totals.2025$number.activities[2] #numb.refunds.received
+                          ,argument.subtitle = "Refunds received")
+  
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.numb.containers.refunded.2025"
+                          ,argument.value = function.comma.to.thousands(totals.2025$total[2]) #numb.all.containers.refunded
+                          ,argument.subtitle = HTML(
+                            paste0("Containers refunded, including", br()
+                                   ,"<b>", numb.PET.refunded.2025," plastic bottles","</b>", br()
+                                   ,"<b>", numb.cans.refunded.2025," cans","</b>", br()
+                                   ,"<b>", numb.glass.refunded.2025, " glass bottles","</b>", br()
+                                   ,"<b>", numb.carton.refunded.2025, " carton","</b>")
+                          ) # Close HTML()
+  )
   
   #-----------------------------------
   # 2025 stacked bar plot using plotly
@@ -375,6 +413,44 @@ server <- function(input, output, session) {
     
     plot
   })
+  
+  #----------------
+  # 2024 valueBoxes
+  # Valid colors are: red, yellow, aqua, blue, light-blue, green, navy, teal, olive, lime, orange, fuchsia, purple, maroon, black.
+  ## [How to break line inside a paste0() function in shiny dashboard](https://stackoverflow.com/questions/51079153/how-to-break-line-inside-a-paste0-function-in-shiny-dashboard)
+  #----------------
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.numb.collections.made.2024"
+                          ,argument.value = totals.2024$number.activities[1]
+                          ,argument.subtitle = "Collections made")
+  
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.numb.containers.collected.2024"
+                          ,argument.value = function.comma.to.thousands(totals.2024$total[1]) #numb.all.containers.collected
+                          ,argument.subtitle = HTML(
+                            paste0("Containers collected, including",br()
+                                   ,"<b>", numb.PET.collected.2024," plastic bottles","</b>", br()
+                                   ,"<b>", numb.cans.collected.2024," cans","</b>", br()
+                                   ,"<b>", numb.glass.collected.2024, " glass bottles","</b>", br()
+                                   ,"<b>", numb.carton.collected.2024, " carton","</b>")
+                          ) # Close HTML()
+  )
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.numb.refunds.received.2024"
+                          ,argument.value = totals.2024$number.activities[2] #numb.refunds.received
+                          ,argument.subtitle = "Refunds received")
+  
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.numb.containers.refunded.2024"
+                          ,argument.value = function.comma.to.thousands(totals.2024$total[2]) #numb.all.containers.refunded
+                          ,argument.subtitle = HTML(
+                            paste0("Containers refunded, including", br()
+                                   ,"<b>", numb.PET.refunded.2024," plastic bottles","</b>", br()
+                                   ,"<b>", numb.cans.refunded.2024," cans","</b>", br()
+                                   ,"<b>", numb.glass.refunded.2024, " glass bottles","</b>", br()
+                                   ,"<b>", numb.carton.refunded.2024, " carton","</b>")
+                          ) # Close HTML()
+  )
   
   #------------------------------------
   # 2024 stacked bar plot using ggplot2

@@ -55,4 +55,9 @@ function.renderInfoBox <- function(shiny_output, output.id, arg.title, arg.value
   }) # Close renderInfoBox()
 }# Close function{}
 
+#---------------------------
+# Function to format numbers
+#---------------------------
+#my_comma <- scales::label_comma(accuracy = 1, big.mark = ",", decimal.mark = ".")
+function.comma.to.thousands <- scales::label_comma(accuracy = 1, big.mark = ",", decimal.mark = ".")
 

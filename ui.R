@@ -172,12 +172,16 @@ body <- shinydashboard::dashboardBody(
     #*****************************************
     ,shinydashboard::tabItem(
       tabName = "tabContainers"
+    # Year to date (current)
       ,fluidRow(
-         shinydashboard::valueBoxOutput(outputId = "valueBox.numb.all.containers.stock", width = 3)
-        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.collections.made", width = 2)
-        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.collected", width = 3)
-        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.refunds.received", width = 1)
-        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.refunded", width = 3)
+        shinydashboard::valueBoxOutput(outputId = "valueBox.numb.all.containers.stock", width = 3)
+      ) # Close fluidRow
+    # 2025
+      ,fluidRow(
+        shinydashboard::valueBoxOutput(outputId = "valueBox.numb.collections.made.2025", width = 2)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.collected.2025", width = 3)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.refunds.received.2025", width = 2)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.refunded.2025", width = 3)
       ) # Close fluidRow
       ,fluidRow(
         box(title="Container collection and refund in 2025"
@@ -187,6 +191,14 @@ body <- shinydashboard::dashboardBody(
             ,height = 455 # Plot can go outside box border if height too small # White space if height too big
             ,plotlyOutput(outputId="plot.stacked.bars.containers.2025"))
       ) # Close fluidRow
+    # 2024
+      ,fluidRow(
+         shinydashboard::valueBoxOutput(outputId = "valueBox.numb.collections.made.2024", width = 2)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.collected.2024", width = 3)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.refunds.received.2024", width = 2)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.refunded.2024", width = 3)
+    ) # Close fluidRow
+    
       ,fluidRow(
         box(title="Container collection and refund in 2024"
             ,status="primary"

@@ -133,16 +133,9 @@ dir.app <- file.path(dir.C,"GoogleDrive_MyDrive","scripts","RProject_Shinyapp_da
 # dir.data <- file.path(dir.app,"data")
 # dir.create(dir.data)
 
-# 
-# text.1 <- "Create structured folders and subfolders"
-# # Read a jpg file
-# img.1 <- magick::image_read(path = file.path(dir.img,"nested-folders-subfolders.jpg")) |>
-#   magick::image_annotate(text = text.1, size = 30
-#                          ,gravity = "north" # location of annotation (north=top, northeast= top right)
-#                          ,color = "blue"
-#                          ,font = "Roboto") |>
-#   magick::image_write(path = file.path(dir.img.annotated,"nested-folders-subfolders[1]annotated.jpg"))
-  # class(img.1) [1] "magick-image"
+# Get functions here
+#setwd(dir.app)
+source("functions.R")
 
 #*****************************************
 # Read data to use under menuItem "Food" 
@@ -592,18 +585,6 @@ totals.all.types <- containers.daily.long.not.all.types |>
     total.label=dplyr::case_when(total %in% c(0:9) ~ NA_integer_
                                  ,TRUE ~ total)) # dim(totals.all.types) 266 4
 
-# Calculate total number of collected or refunded containers
-totals <- containers |> 
-  dplyr::group_by(activities) |>
-  dplyr::summarise(total.PET=sum(number.PET, na.rm = TRUE)
-                   ,total.cans=sum(number.cans, na.rm = TRUE)
-                   ,total.glass=sum(number.glass, na.rm = TRUE)
-                   ,total.carton=sum(number.carton, na.rm = TRUE)
-                   ,number.activities= dplyr::n()) |>
-  # Total containers collected or refunded
-  dplyr::rowwise() |>
-  dplyr::mutate(total=sum(dplyr::c_across(tidyselect::starts_with("total.")), na.rm = TRUE)) # dim(totals) 2 7
-
 #-----------------------------------------------------
 # Create subsets by years
 #-----------------------------------------------------
@@ -611,6 +592,11 @@ totals <- containers |>
 #-----
 # 2025
 #-----
+containers.2025 <- containers %>% 
+  dplyr::filter(dplyr::between(x=date.of.activity
+                               ,left= as.Date("2025-01-01")
+                               ,right=as.Date("2025-12-31"))) # dim(containers.2025) 3 15
+
 ## Data used in Recycling stacked bar plots
 containers.daily.long.not.all.types.2025 <- containers.daily.long.not.all.types %>% 
   dplyr::filter(dplyr::between(x=date.of.activity
@@ -621,9 +607,31 @@ totals.all.types.2025 <- totals.all.types %>%
   dplyr::filter(dplyr::between(x=date.of.activity
                                ,left= as.Date("2025-01-01")
                                ,right=as.Date("2025-12-31"))) # dim(totals.all.types.2025) 3 4
+
+# Calculate total number of collected or refunded containers
+totals.2025 <- containers %>% 
+  dplyr::filter(dplyr::between(x=date.of.activity
+                               ,left= as.Date("2025-01-01")
+                               ,right=as.Date("2025-12-31"))) %>% 
+  dplyr::group_by(activities) %>%
+  dplyr::summarise(total.PET=sum(number.PET, na.rm = TRUE)
+                   ,total.cans=sum(number.cans, na.rm = TRUE)
+                   ,total.glass=sum(number.glass, na.rm = TRUE)
+                   ,total.carton=sum(number.carton, na.rm = TRUE)
+                   ,number.activities= dplyr::n()) %>%
+  # Total containers collected or refunded
+  dplyr::rowwise() %>%
+  dplyr::mutate(total=sum(dplyr::c_across(tidyselect::starts_with("total.")), na.rm = TRUE)) # dim(totals.2025) 1 7
+
 #-----
 # 2024
 #-----
+
+containers.2024 <- containers %>% 
+  dplyr::filter(dplyr::between(x=date.of.activity
+                               ,left= as.Date("2024-01-01")
+                               ,right=as.Date("2024-12-31"))) # dim(containers.2024) 454 15
+
 ## Data used in Recycling stacked bar plots
 containers.daily.long.not.all.types.2024 <- containers.daily.long.not.all.types %>% 
   dplyr::filter(dplyr::between(x=date.of.activity
@@ -635,36 +643,78 @@ totals.all.types.2024 <- totals.all.types %>%
                                ,left= as.Date("2024-01-01")
                                ,right=as.Date("2024-12-31"))) # dim(totals.all.types.2024) 263 4
 
+# Calculate total number of collected or refunded containers
+totals.2024 <- containers %>% 
+  dplyr::filter(dplyr::between(x=date.of.activity
+                               ,left= as.Date("2024-01-01")
+                               ,right=as.Date("2024-12-31"))) %>% 
+  dplyr::group_by(activities) %>%
+  dplyr::summarise(total.PET=sum(number.PET, na.rm = TRUE)
+                   ,total.cans=sum(number.cans, na.rm = TRUE)
+                   ,total.glass=sum(number.glass, na.rm = TRUE)
+                   ,total.carton=sum(number.carton, na.rm = TRUE)
+                   ,number.activities= dplyr::n()) %>%
+  # Total containers collected or refunded
+  dplyr::rowwise() %>%
+  dplyr::mutate(total=sum(dplyr::c_across(tidyselect::starts_with("total.")), na.rm = TRUE)) # dim(totals.2024) 2 7
+
 #-----------------------------------------------------
 # Compute values to use in Recycling valueBox, infoBox
 #-----------------------------------------------------
-# Function to format numbers
-my_comma <- scales::label_comma(accuracy = 1, big.mark = ",", decimal.mark = ".")
 
 numb.PET.stock <- tail(containers$numb.PET.stock, n=1)
 numb.cans.stock <- tail(containers$numb.cans.stock, n=1) 
 numb.glass.stock <- tail(containers$numb.glass.stock, n=1)
 numb.carton.stock <- tail(containers$numb.carton.stock, n=1)
+
 numb.all.containers.stock <- tail(containers$numb.all.containers.stock,n=1)
 
-numb.collections.made <- totals$number.activities[1]
+#numb.collections.made <- totals$number.activities[1]
 
-numb.PET.collected <- my_comma(totals$total.PET[1])
-numb.cans.collected <- my_comma(totals$total.cans[1])
-numb.glass.collected <- my_comma(totals$total.glass[1])
-numb.carton.collected <- my_comma(totals$total.carton[1])
+#numb.PET.collected <- my_comma(totals$total.PET[1])
+numb.PET.collected.2025 <- function.comma.to.thousands(totals.2025$total.PET[1])
+numb.PET.collected.2024 <- function.comma.to.thousands(totals.2024$total.PET[1])
+
+#numb.cans.collected <- my_comma(totals$total.cans[1])
+numb.cans.collected.2025 <- function.comma.to.thousands(totals.2025$total.cans[1])
+numb.cans.collected.2024 <- function.comma.to.thousands(totals.2024$total.cans[1])
+
+#numb.glass.collected <- my_comma(totals$total.glass[1])
+numb.glass.collected.2025 <- function.comma.to.thousands(totals.2025$total.glass[1])
+numb.glass.collected.2024 <- function.comma.to.thousands(totals.2024$total.glass[1])
+
+#numb.carton.collected <- my_comma(totals$total.carton[1])
+numb.carton.collected.2025 <- function.comma.to.thousands(totals.2025$total.carton[1])
+numb.carton.collected.2024 <- function.comma.to.thousands(totals.2024$total.carton[1])
+
 numb.all.containers.collected <- my_comma(totals$total[1])
 
 numb.refunds.received <- totals$number.activities[2]
 
-numb.PET.refunded <- my_comma(totals$total.PET[2])
-numb.cans.refunded <- my_comma(totals$total.cans[2])
-numb.glass.refunded <- my_comma(totals$total.glass[2])
-numb.carton.refunded <- my_comma(totals$total.carton[2])
+#numb.PET.refunded <- my_comma(totals$total.PET[2])
+numb.PET.refunded.2025 <-  function.comma.to.thousands(totals.2025$total.PET[2])
+numb.PET.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.PET[2])
+
+#numb.cans.refunded <- my_comma(totals$total.cans[2])
+numb.cans.refunded.2025 <-  function.comma.to.thousands(totals.2025$total.cans[2])
+numb.cans.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.cans[2])
+
+#numb.glass.refunded <- my_comma(totals$total.glass[2])
+numb.glass.refunded.2025 <-  function.comma.to.thousands(totals.2025$total.glass[2])
+numb.glass.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.glass[2])
+
+#numb.carton.refunded <- my_comma(totals$total.carton[2])
+numb.carton.refunded.2025 <-  function.comma.to.thousands(totals.2025$total.carton[2])
+numb.carton.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.carton[2])
+
 numb.all.containers.refunded <- my_comma(totals$total[2])
 
 date.earliest.record.recycling <- format(min(containers$date.of.activity, na.rm = TRUE), "%d %B %Y")
 date.latest.record.recycling <- format(max(containers$date.of.activity, na.rm = TRUE),"%d %B %Y")
+
+#-----------------------------------------------------
+# Compute values to use in Recycling 2024 valueBoxes
+#-----------------------------------------------------
 
 #---------------------------
 # Check shinyapps.io account
