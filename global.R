@@ -18,6 +18,7 @@
 ## [suppress NAs in paste()](https://stackoverflow.com/questions/13673894/suppress-nas-in-paste)
 ## Date       Changes:
 ##---------------------------------------------------------------------------------------------------------
+## 2025-02-03 Corrected placement of text label on stacked bars of daily number of collected or refunded containers by plotly. Stacked bar plot by ggplot2 doesn't have this issue.  
 ## 2025-01-13 Deleted menuItem="JOb"
 ## 2024-11-13 Fixed error reading sheetname="hygiene-products". Error due to a new column added to the sheet not specified in googlesheets4::read_sheet(col_types = )
 ## 2024-11-13 Error reading barcode-scan.gsheet sheet="food" fixed. Error due to column name timestamp accidentally edited as e during manual update in the file
@@ -536,7 +537,7 @@ containers <- googlesheets4::read_sheet(sheet_id) |>
     #                               ,activities=="Collection"~ number.all.types)
     #,numb.PET.stock=ave(number.PET, cumsum(number.PET.reset=="yes"), FUN = cumsum)
     #,numb.all.containers.stock=ave(number.all.types.2, cumsum(number.all.types.2==0), FUN=cumsum)
-    ) # Close mutate() # class(containers) [1] "data.frame" # dim(containers) 457 15
+    ) # Close mutate() # class(containers) [1] "data.frame" # dim(containers) 462 15
 
 # Calculate daily number of containers 
 ## Adding multiple collections to one number per day
@@ -550,7 +551,7 @@ containers.daily.wide <- containers |>
                    # suppress NAs in paste()
                    ,note=paste(ifelse(is.na(Note),"", Note), collapse = "\n")
                    ) |>
-  dplyr::mutate(weeks=as.numeric(difftime(date.of.activity, min(date.of.activity), units = "weeks"))) # dim(containers.daily.wide) 266 9
+  dplyr::mutate(weeks=as.numeric(difftime(date.of.activity, min(date.of.activity), units = "weeks"))) # dim(containers.daily.wide) 270 9
 
 # Daily collection or refund in long format
 containers.daily.long <- tidyr::pivot_longer(
@@ -567,14 +568,59 @@ containers.daily.long <- tidyr::pivot_longer(
     # Set 0 to missing
     ,container.number.label=dplyr::case_when(
       container.number.adjusted==0 ~ NA_integer_
-      ,TRUE ~ container.number.adjusted)) # dim(containers.daily.long) 1330 8
+      ,TRUE ~ container.number.adjusted)) # dim(containers.daily.long) 1350 8
 
+#--------------------------------------
 # Data used to create stacked bar plot
+#--------------------------------------
 ## Data structure: 1 row per activities, date of activity, container type
 containers.daily.long.not.all.types <- containers.daily.long |> 
-  dplyr::filter(container.type !="all.types") # dim(containers.daily.long.not.all.types) 1064 8
+  dplyr::filter(container.type !="all.types") # dim(containers.daily.long.not.all.types) 1080 8
 
+number.containers.daily <- containers.daily.long.not.all.types %>%
+  dplyr::mutate(activities=gsub(x=activities, pattern = " ", replacement="_")) %>%
+  dplyr::group_by(date.of.activity, activities) %>%
+  dplyr::summarize(total = sum(container.number.adjusted), .groups = "drop") %>%
+  tidyr::pivot_wider(
+    names_from = activities,
+    values_from = total,
+    names_prefix = "total_",
+    values_fill = list(total = 0)
+  ) # dim(number.containers.daily) 257 3
+
+# Create y position for text label to annotate stacked bars
+stacked.bar.label.height <- number.containers.daily %>%
+  dplyr::mutate(
+    # Dynamic offset: Ensures text does not overlap, uses min + scaling factor
+    offset = dplyr::case_when(
+      # Lower scaling factors to get text label closer to the bars
+       total_Collection > 0  ~ max(3, total_Collection * 0.1)  
+      ,total_Collection == 0 & total_Refund_in_cash != 0 ~ 3  # Refund-only case: Small offset
+      ,TRUE ~ 0)
+    # Adjust max_height to ensure text is placed above bars
+    ,max_height = dplyr::case_when(
+      total_Collection > 0 ~ total_Collection + offset  # Text above highest bar
+      ,total_Collection == 0 & total_Refund_in_cash != 0 ~ offset  # If only refund, keep slightly above 0
+      ,TRUE ~ NA_real_)
+    ) # dim(stacked.bar.label.height) 257 5
+
+containers.daily.stacked.bar.label.data <- number.containers.daily %>%
+  dplyr::group_by(date.of.activity) %>%
+  dplyr::summarise(text_label = case_when(
+    !(total_Collection ==0) & !(total_Refund_in_cash ==0) ~ 
+      paste0(total_Collection, "\n", total_Refund_in_cash)
+    ,!(total_Collection ==0) & (total_Refund_in_cash ==0) ~ as.character(total_Collection)
+    ,(total_Collection ==0) & !(total_Refund_in_cash ==0) ~ as.character(total_Refund_in_cash)
+    ,TRUE ~ NA_character_ ) # Close case_when()
+    # Create y position for text_label
+  ) %>%
+  dplyr::ungroup() %>%
+  dplyr::distinct() %>%
+  dplyr::mutate(text_label_y_position = stacked.bar.label.height$max_height) # dim(containers.daily.stacked.bar.label.data) 257 3
+
+#-------------------------------------------------------
 # Calculate total containers per day regardless of types
+#-------------------------------------------------------
 ## This is used to place number on top of each stacked bar
 totals.all.types <- containers.daily.long.not.all.types |> 
   dplyr::group_by(activities, date.of.activity) |> 
@@ -583,7 +629,7 @@ totals.all.types <- containers.daily.long.not.all.types |>
   dplyr::mutate(
     # Set total >=10 or <0 to be printed, total of 0 to 9 to be missing
     total.label=dplyr::case_when(total %in% c(0:9) ~ NA_integer_
-                                 ,TRUE ~ total)) # dim(totals.all.types) 266 4
+                                 ,TRUE ~ total)) # dim(totals.all.types) 270 4
 
 #-----------------------------------------------------
 # Create subsets by years
@@ -595,18 +641,24 @@ totals.all.types <- containers.daily.long.not.all.types |>
 containers.2025 <- containers %>% 
   dplyr::filter(dplyr::between(x=date.of.activity
                                ,left= as.Date("2025-01-01")
-                               ,right=as.Date("2025-12-31"))) # dim(containers.2025) 3 15
+                               ,right=as.Date("2025-12-31"))) # dim(containers.2025) 8 15
 
 ## Data used in Recycling stacked bar plots
 containers.daily.long.not.all.types.2025 <- containers.daily.long.not.all.types %>% 
   dplyr::filter(dplyr::between(x=date.of.activity
                                ,left= as.Date("2025-01-01")
-                               ,right=as.Date("2025-12-31"))) # dim(containers.daily.long.not.all.types.2025) 12 8
+                               ,right=as.Date("2025-12-31"))) # dim(containers.daily.long.not.all.types.2025) 28 8
+
+# Label text data in Recycling stacked bar plots
+containers.daily.stacked.bar.label.data.2025 <- containers.daily.stacked.bar.label.data %>% 
+  dplyr::filter(dplyr::between(x=date.of.activity
+                               ,left= as.Date("2025-01-01")
+                               ,right=as.Date("2025-12-31"))) # dim(containers.daily.stacked.bar.label.data.2025) 6 3
 
 totals.all.types.2025 <- totals.all.types %>% 
   dplyr::filter(dplyr::between(x=date.of.activity
                                ,left= as.Date("2025-01-01")
-                               ,right=as.Date("2025-12-31"))) # dim(totals.all.types.2025) 3 4
+                               ,right=as.Date("2025-12-31"))) # dim(totals.all.types.2025) 7 4
 
 # Calculate total number of collected or refunded containers
 totals.2025 <- containers %>% 
@@ -621,7 +673,7 @@ totals.2025 <- containers %>%
                    ,number.activities= dplyr::n()) %>%
   # Total containers collected or refunded
   dplyr::rowwise() %>%
-  dplyr::mutate(total=sum(dplyr::c_across(tidyselect::starts_with("total.")), na.rm = TRUE)) # dim(totals.2025) 1 7
+  dplyr::mutate(total=sum(dplyr::c_across(tidyselect::starts_with("total.")), na.rm = TRUE)) # dim(totals.2025) 2 7
 
 #-----
 # 2024
@@ -694,14 +746,14 @@ numb.glass.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.glass
 numb.carton.refunded.2025 <-  function.comma.to.thousands(totals.2025$total.carton[2])
 numb.carton.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.carton[2])
 
-numb.all.containers.refunded <- my_comma(totals$total[2])
-
 date.earliest.record.recycling <- format(min(containers$date.of.activity, na.rm = TRUE), "%d %B %Y")
 date.latest.record.recycling <- format(max(containers$date.of.activity, na.rm = TRUE),"%d %B %Y")
 
-#-----------------------------------------------------
-# Compute values to use in Recycling 2024 valueBoxes
-#-----------------------------------------------------
+#***************************************************
+# Read data to use under menuItem "Job" 
+## Input file: job-applications-employment.gsheet
+## sheetname="job_events"
+#***************************************************
 
 #---------------------------
 # Check shinyapps.io account

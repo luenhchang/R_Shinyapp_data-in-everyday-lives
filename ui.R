@@ -96,7 +96,7 @@ body <- shinydashboard::dashboardBody(
              ,solidHeader = TRUE
              ,collapsible = TRUE
              ,width = 5
-             ,dataTableOutput(outputId="table.food.category.product.name"))
+             ,DTOutput(outputId="table.food.category.product.name"))
         ) # Close fluidRow
       ,fluidRow(
         box(title="Expiry of foods"
@@ -104,13 +104,13 @@ body <- shinydashboard::dashboardBody(
             ,solidHeader = TRUE
             ,collapsible = TRUE
             ,width = 5
-            ,dataTableOutput(outputId="table.food.expiring.DT", width = "100%", height = "100%"))
+            ,DTOutput(outputId="table.food.expiring.DT", width = "100%", height = "100%"))
         ,box(title = "Food usage"
              ,status = "primary"
              ,solidHeader = TRUE
              ,collapsible = TRUE
              ,width = 7
-             ,dataTableOutput(outputId="table.food.consumed.DT", width = "100%", height = "100%"))
+             ,DTOutput(outputId="table.food.consumed.DT", width = "100%", height = "100%"))
         ) # Close fluidRow
       ,fluidRow(
         box(title = "Food prices"
@@ -118,7 +118,7 @@ body <- shinydashboard::dashboardBody(
             ,solidHeader = TRUE
             ,collapsible = TRUE
             ,width = 7
-            ,dataTableOutput(outputId="table.food.price.DT", width = "100%", height = "100%")) # Close box()
+            ,DTOutput(outputId="table.food.price.DT", width = "100%", height = "100%")) # Close box()
           ) # Close fluidRow
       ,fluidRow(
         box(title="Monthly spend on food categories-interactive plot using plotly package"
@@ -152,7 +152,7 @@ body <- shinydashboard::dashboardBody(
             ,status = "primary"
             ,solidHeader = TRUE
             ,collapsible = TRUE
-            ,dataTableOutput(outputId="table.hygiene.count.unopened.DT"))
+            ,DTOutput(outputId="table.hygiene.count.unopened.DT"))
         ,box(title="Plot 2.1"
              ,status = "primary"
              ,solidHeader = TRUE
@@ -163,7 +163,7 @@ body <- shinydashboard::dashboardBody(
             ,status = "primary"
             ,solidHeader = TRUE
             ,collapsible = TRUE
-            ,dataTableOutput(outputId="table.hygiene.price.DT")
+            ,DTOutput(outputId="table.hygiene.price.DT")
             ) # Close box
         ,box(title="Plot 2.2"
              ,status = "primary"
@@ -230,7 +230,7 @@ body <- shinydashboard::dashboardBody(
             ,status = "primary"
             ,solidHeader = TRUE
             ,width = 12
-            ,dataTableOutput(outputId="table.containers.daily.DT")
+            ,DTOutput(outputId="table.containers.daily.DT")
             )
       ) # Close fluidRow
       ,fluidRow(

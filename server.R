@@ -345,43 +345,79 @@ server <- function(input, output, session) {
     data <- containers.daily.long.not.all.types.2025 %>%
       dplyr::mutate(container.type = factor(container.type, levels = c("PET", "cans", "glass", "carton")))
     
-    # Calculate total labels directly in the data
-    totals <- containers.daily.long.not.all.types.2025 %>%
-      dplyr::group_by(date.of.activity) %>%
-      dplyr::summarize(total = sum(container.number.adjusted)) %>%
-      dplyr::mutate(total.label = as.character(total))
+    # Calculate total of containers collected or refunded per day separately:
+    # totals <- containers.daily.long.not.all.types.2025 %>%
+    #   dplyr::mutate(activities=gsub(x=activities, pattern = " ", replacement="_")) %>%
+    #   dplyr::group_by(date.of.activity, activities) %>%
+    #   dplyr::summarize(total = sum(container.number.adjusted), .groups = "drop") %>%
+    #   tidyr::pivot_wider(
+    #     names_from = activities,
+    #     values_from = total,
+    #     names_prefix = "total_",
+    #     values_fill = list(total = 0)
+    #   ) # dim(totals) 6 3
     
-    # Merge totals back into the main data
-    data <- dplyr::left_join(data, totals, by = "date.of.activity")
+    # stacked_heights <- totals %>%
+    #   mutate(
+    #     # Dynamic offset: Ensures text does not overlap, uses min + scaling factor
+    #     offset = case_when(
+    #       total_Collection > 0  ~ max(5, total_Collection * 0.15),  # Always at least 5, scales with height
+    #       total_Collection == 0 & total_Refund_in_cash != 0 ~ 5,  # Refund-only case: Small offset
+    #       TRUE ~ 0
+    #     ),
+    #     
+    #     # Adjust max_height to ensure text is placed above bars
+    #     max_height = case_when(
+    #       total_Collection > 0 ~ total_Collection + offset,  # Text above highest bar
+    #       total_Collection == 0 & total_Refund_in_cash != 0 ~ offset,  # If only refund, keep slightly above 0
+    #       TRUE ~ NA_real_
+    #     )
+    #   )
+    
+    # data.bar.labels <- totals %>%
+    #   dplyr::group_by(date.of.activity) %>%
+    #   dplyr::summarise(text_label = case_when(
+    #     !(total_Collection ==0) & !(total_Refund_in_cash ==0) ~ 
+    #       paste0(total_Collection, "\n", total_Refund_in_cash)
+    #     ,!(total_Collection ==0) & (total_Refund_in_cash ==0) ~ as.character(total_Collection)
+    #     ,(total_Collection ==0) & !(total_Refund_in_cash ==0) ~ as.character(total_Refund_in_cash)
+    #     ,TRUE ~ NA_character_ ) # Close case_when()
+    #     # Create y position for text_label
+    #     ) %>%
+    #   dplyr::ungroup() %>%
+    #   dplyr::distinct() %>%
+    #   dplyr::mutate(text_label_y_position = stacked_heights$max_height) # dim(data.bar.labels) 6 2
     
     # Create the stacked bar plot
-    plot <- plotly::plot_ly(data, 
-                            x = ~date.of.activity, 
-                            y = ~container.number.adjusted,
-                            color = ~container.type,
-                            colors = colors,
-                            type = "bar",
-                            text = ~ifelse(container.type == "carton", total.label, NA),
-                            textposition = "outside",
-                            textfont = list(size = 12)) %>%
+    plot <- plotly::plot_ly(
+      data = data
+      ,x = ~date.of.activity
+      ,y = ~container.number.adjusted
+      ,color = ~container.type
+      ,colors = colors
+      ,type = "bar") %>%
       plotly::layout(
-        barmode = "stack",
-        xaxis = list(
-          title = "",
-          tickformat = "%b-%Y", # Format for month-year
-          dtick = "M1"         # Show ticks monthly
-        ),
-        yaxis = list(
-          title = "Number of containers",
-          tickvals = seq(0, 300, 50) # Breaks on Y-axis
-        ),
-        legend = list(
-          title = list(text = "Container type"),
-          orientation = "h",    # Horizontal legend
-          x = 0,                # Left-align legend
-          y = 1.1               # Place above plot
-        )
-      )
+        barmode = "stack"
+        ,xaxis = list(
+          title = ""
+          ,tickformat = "%b-%Y"
+          ,dtick = "M1")
+        ,yaxis = list(
+          title = "Number of containers"
+          ,tickvals = seq(-300, 300, 50)  # Ensure enough space for negative values
+          )
+        ,legend = list(
+          title = list(text = "Container type")
+          ,orientation = "h"
+          ,x = 0
+          ,y = 1.1)
+        ) %>%
+      plotly::add_annotations(  x = containers.daily.stacked.bar.label.data.2025$date.of.activity
+                               ,y = containers.daily.stacked.bar.label.data.2025$text_label_y_position
+                               ,text = containers.daily.stacked.bar.label.data.2025$text_label
+                               ,xref = "x"
+                               ,yref = "y"
+                               ,showarrow = FALSE)
     
     plot
   })

@@ -69,6 +69,10 @@ You can view the live app here: [Data in Everyday Lives](https://luenhchang.shin
 ```
 
 ## Update
+**2025-02-03**
+* Corrected placement of text label on stacked bars of daily number of collected or refunded containers by plotly. Calculated y position of the text label in data.frame `stacked.bar.label.height`. Created text of the label in data.frame `containers.daily.stacked.bar.label.data`  
+* Replaced `dataTableOutput()` with `DTOutput()` in ui.R
+
 **2025-01-24**:
 * Added number of container collected or refunded in 2025 stacked bar plot using plotly
 
