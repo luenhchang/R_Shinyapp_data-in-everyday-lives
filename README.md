@@ -69,6 +69,9 @@ You can view the live app here: [Data in Everyday Lives](https://luenhchang.shin
 ```
 
 ## Update
+**2025-02-07** 
+* Added horizontal bar plots for employment events and job application events
+
 **2025-02-03**
 * Corrected placement of text label on stacked bars of daily number of collected or refunded containers by plotly. Calculated y position of the text label in data.frame `stacked.bar.label.height`. Created text of the label in data.frame `containers.daily.stacked.bar.label.data`  
 * Replaced `dataTableOutput()` with `DTOutput()` in ui.R

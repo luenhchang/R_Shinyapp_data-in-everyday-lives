@@ -49,6 +49,7 @@ sidebar <- shinydashboard::dashboardSidebar(
     ,shinydashboard::menuItem(text = "Food", tabName = "tabPackagedFood", icon = icon("chart-line"))
     ,shinydashboard::menuItem(text = "Bathroom", tabName = "tabHygieneProducts", icon = icon("chart-line"))
     ,shinydashboard::menuItem(text = "Recycling", tabName = "tabContainers", icon = icon("chart-line"))
+    ,shinydashboard::menuItem(text = "Employment", tabName = "tabEmployment", icon = icon("chart-line"))
   )
 )
 
@@ -238,6 +239,44 @@ body <- shinydashboard::dashboardBody(
         ,shinydashboard::infoBoxOutput(outputId ="infoBox.date.latest.record.recycling" ,width = 3)
       )
     ) # Close tabItem() for menuItem "Recycling"
+    #************************************
+    # menuItem "Employment"
+    #************************************
+    ,shinydashboard::tabItem(
+       tabName = "tabEmployment"
+      ,fluidRow(
+        # Add a title row left-aligned
+        column(
+          width = 12,
+          tags$h1("Employment Timeline", style = style.header)
+          )
+      ) # Close fluidRow()
+      ,fluidRow(
+        box(title="Employment events"
+            ,status="primary"
+            ,solidHeader=TRUE
+            ,width = 12 # By default box is set to width = 6. full width = 12
+            ,height = 455 # Plot can go outside box border if height too small # White space if height too big
+            ,plotlyOutput(outputId="plot.employment.horizontal.bars"))
+      ) # Close fluidRow
+      ,fluidRow(
+        # Add a title row left-aligned
+        column(
+          width = 12,
+          tags$h1("Job application events", style = style.header)
+        )
+      ) # Close fluidRow()
+      ,fluidRow(
+        box(title="Job application events"
+            ,status="primary"
+            ,solidHeader=TRUE
+            ,width = 12 # By default box is set to width = 6. full width = 12
+            ,plotlyOutput( outputId="plot.job.application.horizontal.bars"
+                          ,height = "600px"   # Set height of the plot here
+                          )
+        ) # Close box()
+      ) # Close fluidRow
+      ) # Close tabItem() for menuItem "Employment"
   ) # Close tabItems
 ) # Close dashboardBody()
 

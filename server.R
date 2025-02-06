@@ -583,6 +583,103 @@ server <- function(input, output, session) {
                          ,arg.icon = "list" #icon("list")
                          )
   
+  #*****************************************
+  # Outputs to use under menuItem "Employment"
+  #*****************************************
+  #----------------------------------------------------------------
+  # Create the employment timeline horizontal bar plot using plotly
+  #----------------------------------------------------------------
+  output$plot.employment.horizontal.bars <- plotly::renderPlotly({
+    fig.employment.horizontal.bars <- plot_ly() %>%
+      # Add employment duration bars
+      plotly::add_segments(
+        data = employment_summary
+        ,x = ~start_date, xend = ~end_date
+        ,y = ~position_order, yend = ~position_order
+        ,line = list(width = 10)
+        ,color = ~position_factor
+        ,colors = bar_colors
+        ,name = ~position_factor) %>%
+      # Add event markers with different symbols
+      plotly::add_trace(
+        data = employment_event_data
+        ,x = ~event_date
+        ,y = ~y_adjusted
+        ,type = "scatter"
+        ,mode = "markers"
+        ,marker = list(size = 10, symbol = ~symbol, color = ~event_color)
+        ,text = ~hover_text
+        ,hoverinfo = "text"
+        ,showlegend = FALSE) %>%
+      # Configure layout
+      layout(
+        title = "Employment Timeline"
+        ,xaxis = list(title = "Date", type = "date")
+        ,yaxis = list(title = "", showticklabels = FALSE)
+        ,legend = list(
+          x = 0, y = 0.5
+          ,orientation = "v"
+          ,yanchor = "center"
+          ,traceorder = "reversed" # Maintain order in legend
+        ) # End list()
+      ) # End layout()
+    
+    # Display the plot
+    fig.employment.horizontal.bars
+  })
+  
+  #----------------------------------------------------------------
+  # Create the job application event horizontal bar plot using plotly
+  #----------------------------------------------------------------
+  output$plot.job.application.horizontal.bars <- plotly::renderPlotly({
+    # Create the job application event timeline plot
+    fig.job.application.horizontal.bars <- plot_ly() %>%
+      # Add employment duration bars
+      plotly::add_segments(
+        data = job.summary
+        ,x = ~start_date, xend = ~end_date
+        ,y = ~position_factor, yend = ~position_factor
+        ,line = list(width = 10)
+        ,color = ~position_factor
+        ,colors = job.bar.colors
+        ,name = ~position_factor) %>%
+      # Add event markers with different symbols
+      plotly::add_trace(
+        data = job.events.data
+        ,x = ~event_date
+        ,y = ~position_factor
+        ,type = "scatter"
+        ,mode = "markers"
+        ,marker = list(size = 9, symbol = ~symbol, color = ~event_color)
+        ,text = ~hover_text
+        ,hoverinfo = "text"
+        ,showlegend = FALSE) %>%
+      # Configure layout
+      layout(
+        title = "Job Application Timeline"
+        ,xaxis = list(title = "Date", type = "date")
+        ,yaxis = list(title = "", showticklabels = FALSE)
+        ,legend = list(
+          x = 1.05
+          ,xanchor = "left"
+          ,y = 1
+          ,yanchor = "top"
+          ,traceorder = "reversed" # Maintain order in legend
+          ,itemsizing = "constant"
+          ,orientation = "v"
+          ,title = list(text="Positions")
+          ,scroll = TRUE # Enable scrollable legend
+          ,valign = "top"
+        ) # End list()
+        ,margin = list(r = 200) # Adjust right margin for legend space
+      ) # End layout()
+    
+    # Display the plot
+    fig.job.application.horizontal.bars
+    
+  })
+    
+
 } # Close the server function
 
 #************************************************************************************************#

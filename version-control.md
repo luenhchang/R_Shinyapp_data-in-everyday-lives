@@ -167,3 +167,11 @@ git add .
 git commit -m "Corrected placement of text label on stacked bars of daily number of collected or refunded containers by plotly"
 git push origin main
 ```
+
+## 2025-02-07
+```bash
+cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
+git add .
+git commit -m "Added horizontal bar plots for employment events and job application events"
+git push origin main
+```

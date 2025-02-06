@@ -119,6 +119,7 @@ library(tesseract)
 library(magick)
 library(plotly)
 library(ggforce)
+library(viridisLite)
 
 #------------------------------------------------------------------------
 # Directory in local PC
@@ -497,10 +498,10 @@ summed.price.hygiene <- format(round(sum(barcode.hygiene.df$price, na.rm = TRUE)
 
 # Set Google sheet to Share > Anyone with the link > copy link
 #url.container.responses <- "https://docs.google.com/spreadsheets/d/1Q_oxLE1cl_r9gksXX4R9YGnC2nGZBy3M1hf3-JR2ZIw/edit?usp=sharing"
-sheet_id <- "https://docs.google.com/spreadsheets/d/1Q_oxLE1cl_r9gksXX4R9YGnC2nGZBy3M1hf3-JR2ZIw/"
+sheet.ID.containers <- "https://docs.google.com/spreadsheets/d/1Q_oxLE1cl_r9gksXX4R9YGnC2nGZBy3M1hf3-JR2ZIw/"
 
 # Data is one row per data entry
-containers <- googlesheets4::read_sheet(sheet_id) |>
+containers <- googlesheets4::read_sheet(sheet.ID.containers) |>
   as.data.frame() |>
   dplyr::mutate(activities=Activities
                 ,timestamp=as.POSIXct(x=Timestamp, format="%Y-%m-%d %H:%M:%S")
@@ -749,11 +750,126 @@ numb.carton.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.cart
 date.earliest.record.recycling <- format(min(containers$date.of.activity, na.rm = TRUE), "%d %B %Y")
 date.latest.record.recycling <- format(max(containers$date.of.activity, na.rm = TRUE),"%d %B %Y")
 
-#***************************************************
-# Read data to use under menuItem "Job" 
+#*************************************************************
+# Read data to use under menuItem "Employment" 
 ## Input file: job-applications-employment.gsheet
+## sheetname="employment"
 ## sheetname="job_events"
-#***************************************************
+#*************************************************************
+# Google Sheets link containing employment data
+sheet.ID.job <- "https://docs.google.com/spreadsheets/d/1Oq7Vfm0xemPazUM2GhcqgLF6KVwqqQoBWmcONkSy34E/"
+
+#---------------------------------------------------------------
+# Read employment events from Google Sheets and process the data
+#---------------------------------------------------------------
+employment_data <- googlesheets4::read_sheet(sheet.ID.job, sheet = "employment") %>%
+  as.data.frame() %>%
+  dplyr::group_by(company, position_title, employee_ID) %>%
+  dplyr::mutate(
+    start_date = min(event_date)  # Identify earliest event date per position
+    ,end_date = case_when(
+      # Set end date for current employment using start date or today after the start date
+      "employment start" %in% event & !("employment end" %in% event) & lubridate::today() < as.Date("2025-02-10") ~ start_date
+      ,"employment start" %in% event & !("employment end" %in% event) & lubridate::today() > as.Date("2025-02-10") ~ today()
+      # Set latest event date as end date for past employment
+      ,TRUE ~ max(event_date)
+    )
+    ,total_events = n()            # Count number of events
+    ,position_label = paste(company, position_title, sep = " - ") # Create unique label for each position
+  ) # dim(employment_data) 13 10
+
+# Prepare data for horizontal bars in the timeline
+## Summarise data to one row per company, position_title
+employment_summary <- employment_data %>%
+  dplyr::group_by(position_label, start_date, end_date) %>%
+  dplyr::summarize(event_count = n(), .groups = "drop") %>%
+  dplyr::arrange(start_date) %>% # Order by start date (earliest at bottom)
+  dplyr::mutate(
+    position_order = row_number() # Assign row number to maintain order in plot
+    ,position_factor = factor(position_label, levels = position_label[order(position_order)]) # Factor for legend order
+  ) # dim(employment_summary) 4 6
+
+# Merge row_number from employment_summary back into employment_data
+employment_events <- employment_data %>%
+  dplyr::left_join(
+    employment_summary %>% select(position_label, position_order, position_factor)
+    ,by = "position_label") # dim(employment_events) 13 12
+
+# Generate color-blind-friendly color palette
+bar_colors <- viridisLite::viridis(n = length(unique(employment_summary$position_factor)), option = "turbo")
+
+color_map <- setNames(bar_colors, levels(employment_summary$position_factor))
+
+# Prepare event dataset with appropriate symbols and hover text
+employment_event_data <- employment_events %>%
+  dplyr::mutate(
+    symbol = case_when(
+      event == "employment start" ~ "triangle-up", 
+      event == "employment end" ~ "triangle-down", 
+      TRUE ~ "circle"
+    ),
+    y_adjusted = position_order + 0.05, # Shift symbols slightly above bars
+    event_color = color_map[position_factor], # Assign colors
+    hover_text = paste("Event: ", event, "<br>Date: ", event_date)
+  ) # dim(employment_event_data) 13 16
+
+#----------------------------
+# Read Job application events
+#----------------------------
+# Read job application events
+job.data <- googlesheets4::read_sheet(sheet.ID.job
+                                      ,sheet = "job_events"
+                                      ,na="NA") %>%
+  as.data.frame() %>%
+  dplyr::group_by(company, position_title, reference_number) %>%
+  dplyr::mutate(
+    start_date = min(event_date)
+    ,end_date = max(event_date)
+    ,position_label = case_when(
+      # Concatenate company, position_title
+      is.na(reference_number) ~ paste(company, position_title, sep = " - ")
+      # or company, position_title, reference_number (if available)
+      ,TRUE ~ paste0(company, " - ", position_title, "( job ID: ", reference_number," )")
+    ) 
+  ) # dim(job.data) 149 9
+
+job.summary <- job.data %>%
+  dplyr::group_by(position_label, start_date, end_date) %>%
+  dplyr::summarize(event_count = n(), .groups = "drop") %>%
+  # Order by start date (earliest at bottom)
+  dplyr::arrange(start_date) %>% 
+  dplyr::mutate(
+    position_order = row_number() # Assign row number to maintain order in plot
+    ,position_factor = factor(position_label, levels = position_label[order(position_order)]) # Factor for legend order
+  ) # dim(job.summary) 52 6
+
+# Merge row_number from job.summary back into job.data
+job.events <- job.data %>%
+  dplyr::left_join(
+    job.summary %>% select(position_label, position_order, position_factor)
+    ,by = "position_label") # dim(job.events) 149 11
+
+# Generate color-blind-friendly color palette
+job.bar.colors <- viridisLite::viridis(n = length(unique(job.summary$position_factor)), option = "turbo")
+
+job.color.map <- setNames(job.bar.colors, levels(job.summary$position_factor))
+
+# Prepare event dataset with appropriate symbols and hover text
+job.events.data <- job.events %>%
+  dplyr::mutate(
+    symbol = case_when(
+      event == "submitted application" ~ "triangle-up"
+      ,event == "rejected application" ~ "triangle-down"
+      ,TRUE ~ "circle"
+    )
+    # Shift symbols slightly above bars
+    ,y_adjusted = position_order + 0.05
+    # Assign colors
+    ,event_color = color_map[position_factor]
+    ,hover_text = paste(position_label
+                        ,"<br>Event: ", event
+                        ,"<br>Date: ", event_date)
+  ) # dim(job.events.data) 149 15
 
 #---------------------------
 # Check shinyapps.io account
