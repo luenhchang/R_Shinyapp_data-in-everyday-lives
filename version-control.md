@@ -175,3 +175,12 @@ git add .
 git commit -m "Added horizontal bar plots for employment events and job application events"
 git push origin main
 ```
+
+## 2025-08-18
+```bash
+cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
+git add .
+git commit -m "Added electricity usage and solar export chart, table and rate table"
+git push origin main
+```
+

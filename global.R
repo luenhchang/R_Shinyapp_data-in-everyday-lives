@@ -871,6 +871,35 @@ job.events.data <- job.events %>%
                         ,"<br>Date: ", event_date)
   ) # dim(job.events.data) 149 15
 
+#*************************************************************
+# Read data to use under menuItem "Electricity" 
+#*************************************************************
+# Read tsv in globa.R
+alinta_bills_balance_brought_forward_plot_data <- readr::read_tsv(
+   file = file.path("data","plot_data_alinta_bills_balance_brought_forward.tsv")
+  ,col_types = readr::cols()
+) %>%
+  # Re-create factor for chronological X-axis
+  dplyr::mutate(
+    month_year_factor = factor(
+      month_year,
+      levels = unique(dplyr::arrange(., sort_ym) %>% dplyr::pull(month_year))
+    )
+  )
+# dim(alinta_bills_balance_brought_forward_plot_data) 30 8
+
+alinta_bills_balance_brought_forward_table_data <- readr::read_tsv(
+  file =file.path("data","alinta_bills_balance_brought_forward.tsv")
+  ,col_types = readr::cols()
+)
+# dim(alinta_bills_balance_brought_forward_table_data) 10 7
+
+alinta_bills_rates_over_supply_period <- readr::read_tsv(
+  file = file.path("data","alinta_bills_rates_over_supply_period.tsv")
+  ,col_types = readr::cols()
+) # dim(alinta_bills_rates_over_supply_period) 10 13
+
+
 #---------------------------
 # Check shinyapps.io account
 #---------------------------

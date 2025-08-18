@@ -1,0 +1,31 @@
+supply_start	type	kwh	month_year	month_year_factor	group	sort_ym	plot_fill
+2024-08-20	Energy usage - all hours	65	Aug 2024	Aug 2024	Usage	2024-08-01	Energy usage - all hours
+2024-08-20	Energy usage - hot water systems	92	Aug 2024	Aug 2024	Usage	2024-08-01	Energy usage - hot water systems
+2024-08-20	Solar export	389	Aug 2024	Aug 2024	Solar	2024-08-01	Solar export
+2024-09-20	Energy usage - all hours	141	Sep 2024	Sep 2024	Usage	2024-09-01	Energy usage - all hours
+2024-09-20	Energy usage - hot water systems	184	Sep 2024	Sep 2024	Usage	2024-09-01	Energy usage - hot water systems
+2024-09-20	Solar export	708	Sep 2024	Sep 2024	Solar	2024-09-01	Solar export
+2024-12-01	Energy usage - all hours	140.67	Dec 2024	Dec 2024	Usage	2024-12-01	Energy usage - all hours
+2024-12-01	Energy usage - hot water systems	63.63	Dec 2024	Dec 2024	Usage	2024-12-01	Energy usage - hot water systems
+2024-12-01	Solar export	312.57	Dec 2024	Dec 2024	Solar	2024-12-01	Solar export
+2025-01-01	Energy usage - all hours	161.09	Jan 2025	Jan 2025	Usage	2025-01-01	Energy usage - all hours
+2025-01-01	Energy usage - hot water systems	63.86	Jan 2025	Jan 2025	Usage	2025-01-01	Energy usage - hot water systems
+2025-01-01	Solar export	302.84	Jan 2025	Jan 2025	Solar	2025-01-01	Solar export
+2025-02-01	Energy usage - all hours	111.95	Feb 2025	Feb 2025	Usage	2025-02-01	Energy usage - all hours
+2025-02-01	Energy usage - hot water systems	51.08	Feb 2025	Feb 2025	Usage	2025-02-01	Energy usage - hot water systems
+2025-02-01	Solar export	285.31	Feb 2025	Feb 2025	Solar	2025-02-01	Solar export
+2025-03-01	Energy usage - all hours	113.23	Mar 2025	Mar 2025	Usage	2025-03-01	Energy usage - all hours
+2025-03-01	Energy usage - hot water systems	77.04	Mar 2025	Mar 2025	Usage	2025-03-01	Energy usage - hot water systems
+2025-03-01	Solar export	222.7	Mar 2025	Mar 2025	Solar	2025-03-01	Solar export
+2025-04-01	Energy usage - all hours	71.59	Apr 2025	Apr 2025	Usage	2025-04-01	Energy usage - all hours
+2025-04-01	Energy usage - hot water systems	85.85	Apr 2025	Apr 2025	Usage	2025-04-01	Energy usage - hot water systems
+2025-04-01	Solar export	297.59	Apr 2025	Apr 2025	Solar	2025-04-01	Solar export
+2025-05-01	Energy usage - all hours	85.71	May 2025	May 2025	Usage	2025-05-01	Energy usage - all hours
+2025-05-01	Energy usage - hot water systems	106.54	May 2025	May 2025	Usage	2025-05-01	Energy usage - hot water systems
+2025-05-01	Solar export	251.33	May 2025	May 2025	Solar	2025-05-01	Solar export
+2025-06-01	Energy usage - all hours	353.12	Jun 2025	Jun 2025	Usage	2025-06-01	Energy usage - all hours
+2025-06-01	Energy usage - hot water systems	139.52	Jun 2025	Jun 2025	Usage	2025-06-01	Energy usage - hot water systems
+2025-06-01	Solar export	250.58	Jun 2025	Jun 2025	Solar	2025-06-01	Solar export
+2025-07-01	Energy usage - all hours	522.68	Jul 2025	Jul 2025	Usage	2025-07-01	Energy usage - all hours
+2025-07-01	Energy usage - hot water systems	154.37	Jul 2025	Jul 2025	Usage	2025-07-01	Energy usage - hot water systems
+2025-07-01	Solar export	289.36	Jul 2025	Jul 2025	Solar	2025-07-01	Solar export

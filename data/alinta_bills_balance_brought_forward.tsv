@@ -1,0 +1,11 @@
+filename	supply_start	supply_end	solar_kwh	peak_kwh	ctl1_kwh	amount_due
+Alinta-energy-bill_supply-period_20240820-20240919.txt	2024-08-20	2024-09-19	389	65	92	37.75
+Alinta-energy-bill_supply-period_20240920-20241130.txt	2024-09-20	2024-11-30	708	141	184	31.67
+Alinta-energy-bill_supply-period_20241201-20241231.txt	2024-12-01	2024-12-31	312.57	140.67	63.63	83.54
+Alinta-energy-bill_supply-period_20250101-20250131.txt	2025-01-01	2025-01-31	302.84	161.09	63.86	14.27
+Alinta-energy-bill_supply-period_20250201-20250228.txt	2025-02-01	2025-02-28	285.31	111.95	51.08	69.46
+Alinta-energy-bill_supply-period_20250301-20250331.txt	2025-03-01	2025-03-31	222.7	113.23	77.04	3.61
+Alinta-energy-bill_supply-period_20250401-20250430.txt	2025-04-01	2025-04-30	297.59	71.59	85.85	66.57
+Alinta-energy-bill_supply-period_20250501-20250531.txt	2025-05-01	2025-05-31	251.33	85.71	106.54	79.85
+Alinta-energy-bill_supply-period_20250601-20250630.txt	2025-06-01	2025-06-30	250.58	353.12	139.52	83.17
+Alinta-energy-bill_supply-period_20250701-20250731.txt	2025-07-01	2025-07-31	289.36	522.68	154.37	211.91

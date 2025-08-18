@@ -50,7 +50,8 @@ sidebar <- shinydashboard::dashboardSidebar(
     ,shinydashboard::menuItem(text = "Bathroom", tabName = "tabHygieneProducts", icon = icon("chart-line"))
     ,shinydashboard::menuItem(text = "Recycling", tabName = "tabContainers", icon = icon("chart-line"))
     ,shinydashboard::menuItem(text = "Employment", tabName = "tabEmployment", icon = icon("chart-line"))
-  )
+    ,shinydashboard::menuItem(text = "Electricity", tabName = "tabElectricity", icon = icon("chart-line"))
+    )
 )
 
 # Level 1 header style
@@ -277,6 +278,40 @@ body <- shinydashboard::dashboardBody(
         ) # Close box()
       ) # Close fluidRow
       ) # Close tabItem() for menuItem "Employment"
+    #************************************
+    # menuItem "Electricity"
+    #************************************
+    ,shinydashboard::tabItem(
+      tabName = "tabElectricity"
+      ,fluidRow(
+        box(title="Electricity usage and solar export"
+            ,status="primary"
+            ,solidHeader=TRUE
+            ,width = 12 # By default box is set to width = 6. full width = 12
+            ,height = 455 # Plot can go outside box border if height too small # White space if height too big
+            ,plotOutput(outputId="plot.energy.usage.solar.export"))
+        ) # Close fluidRow
+      ,fluidRow(
+        box(title = "Alinta energy bill- balance brought forward"
+            ,status = "primary"
+            ,solidHeader = TRUE
+            ,width = 12
+            ,DTOutput(outputId="table.electricity.usage.solar.export")
+        )
+      ) # Close fluidRow
+      ,fluidRow(
+        box(
+          title = shiny::HTML(
+            "Alinta energy bill - supply charges and rates. All rates listed per KWh and included GST")
+          ,status = "primary"
+          ,solidHeader = TRUE
+          ,width = 12
+          ,DTOutput(outputId="table.rates.over.supply.period")
+        )
+      ) # Close fluidRow
+      
+      
+      ) # Close tabItem() for menuItem "Electricity"
   ) # Close tabItems
 ) # Close dashboardBody()
 

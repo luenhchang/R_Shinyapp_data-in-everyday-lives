@@ -676,9 +676,153 @@ server <- function(input, output, session) {
     
     # Display the plot
     fig.job.application.horizontal.bars
-    
   })
+  #*****************************************
+  # Outputs to use under menuItem "Electricity"
+  #*****************************************
+  output$plot.energy.usage.solar.export <- shiny::renderPlot({
+    plot_data <- alinta_bills_balance_brought_forward_plot_data  
+    # dim(plot_data) 30 8
     
+    # Stacked usage subset
+    usage_data <- plot_data %>%
+      dplyr::filter(type %in% c("Energy usage - all hours", "Energy usage - hot water systems"))
+    # dim(usage_data) 20 6
+    
+    # Totals for stacked usage (for top labels)
+    usage_totals <- usage_data %>%
+      dplyr::group_by(month_year_factor) %>%
+      dplyr::summarise(total_kwh = sum(kwh), .groups = "drop")
+    # dim(usage_totals) 10 2
+    
+    # Solar export subset
+    solar_data <- plot_data %>% dplyr::filter(type == "Solar export")
+    # dim(solar_data) 10 8
+    
+    # Grouped bars
+    ## group 1: Stacked bars of peak_kwh and controlled load 1
+    ## group 2: solar export
+    plot.electricity.usage.solar.export <-  ggplot() +
+      # Stacked usage bars
+      geom_bar(
+        data = usage_data,
+        mapping = aes(
+          x = month_year_factor,
+          y = kwh,
+          fill = plot_fill
+        ),
+        stat = "identity",
+        position = "stack",
+        width = 0.4
+      ) +
+      # Labels inside stacked usage bars
+      geom_text(
+        data = usage_data,
+        aes(
+          x = month_year_factor,
+          y = kwh,
+          label = round(kwh, 1),   # show each bar segment
+          group = type
+        ),
+        position = position_stack(vjust = 0.5), # center inside each stacked segment
+        color = "white",
+        size = 4
+      ) +
+      # Totals above stacked bars
+      geom_text(
+        data = usage_totals,
+        aes(
+          x = month_year_factor,
+          y = total_kwh,
+          label = round(total_kwh, 1)
+        ),
+        vjust = -0.5,
+        fontface = "bold",
+        size = 5
+      ) +
+      # Solar export bars
+      geom_bar(
+        data = solar_data,
+        mapping = aes(
+          x = month_year_factor,
+          y = kwh,
+          fill = plot_fill
+        ),
+        stat = "identity",
+        width = 0.4,
+        position = position_nudge(x = 0.4)
+      ) +
+      # Labels above solar export bars
+      geom_text(
+        data = solar_data,
+        aes(
+          x = month_year_factor,
+          y = kwh,
+          label = round(kwh, 1)
+        ),
+        position = position_nudge(x = 0.4),
+        vjust = -0.5,
+        size = 4,
+        color = "black"
+      ) +
+      scale_fill_manual(
+        values = c(
+          "Energy usage - all hours" = "#1f77b4",
+          "Energy usage - hot water systems" = "#ff7f0e",
+          "Solar export" = "orange"
+        )
+      ) +
+      labs(
+        x = "Supply Period",
+        y = "kWh",
+        fill = "Category",
+        title = "Electricity Usage and Solar Export per Supply Period"
+      ) +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title.x = element_text(size = 18),
+        axis.title.y = element_text(size = 18),
+        plot.title = element_text(size = 20, face = "bold")
+      )
+    plot.electricity.usage.solar.export
+  }) # Close renderPlot()
+  
+  output$table.electricity.usage.solar.export <- DT::renderDataTable({
+    DT::datatable(data= alinta_bills_balance_brought_forward_table_data
+                  ,options = list(autoWidth = FALSE, searching = TRUE))
+    }) # Close renderDataTable()
+  
+  output$table.rates.over.supply.period <- DT::renderDataTable({
+    table_data <- alinta_bills_rates_over_supply_period %>% 
+      dplyr::select( supply_start
+                     ,Rate_Incl_GST_Daily_Charge
+                     ,Rate_Incl_GST_Peak
+                     ,Rate_Incl_GST_Demand
+                     ,Rate_Incl_GST_Daily_Charge_Controlled_Load_1
+                     ,Rate_Incl_GST_Controlled_Load_1
+                     ,Rate_Incl_GST_Standard_Solar) %>%
+      dplyr::rename_with(
+        .cols = c(
+          "Rate_Incl_GST_Daily_Charge",
+          "Rate_Incl_GST_Peak",
+          "Rate_Incl_GST_Demand",
+          "Rate_Incl_GST_Daily_Charge_Controlled_Load_1",
+          "Rate_Incl_GST_Controlled_Load_1",
+          "Rate_Incl_GST_Standard_Solar"
+        ),
+        .fn = ~ stringr::str_replace(.x, "Rate_Incl_GST_", "") %>%       # remove prefix
+          stringr::str_replace_all("_", " ") %>%                       # replace _ with space
+          stringr::str_to_title()                                       # capitalize words
+      ) %>% 
+      dplyr::rename(`Supply Start`=supply_start
+                    ,`Peak hour surcharge (4PM-9PM)`=Demand) %>%
+      dplyr::arrange(dplyr::desc(`Supply Start`))
+    
+    DT::datatable(data = table_data
+                  ,options = list(autoWidth = FALSE, searching = TRUE))
+  })
 
 } # Close the server function
 
