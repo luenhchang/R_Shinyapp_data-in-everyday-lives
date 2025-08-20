@@ -45,12 +45,12 @@ sidebar <- shinydashboard::dashboardSidebar(
     # Change font size to 30
     ## Reference [shinydashboard: change font size of menuItem in sidebarMenu [duplicate]](https://stackoverflow.com/questions/53559195/shinydashboard-change-font-size-of-menuitem-in-sidebarmenu)
     tags$style(HTML(".sidebar-menu li a { font-size: 20px; }"))
+    ,shinydashboard::menuItem(text = "Electricity", tabName = "tabElectricity", icon = icon("chart-line"))
     ,shinydashboard::menuItem(text = "About", tabName = "tabAbout",icon = icon("home",lib = "glyphicon"))
     ,shinydashboard::menuItem(text = "Food", tabName = "tabPackagedFood", icon = icon("chart-line"))
     ,shinydashboard::menuItem(text = "Bathroom", tabName = "tabHygieneProducts", icon = icon("chart-line"))
     ,shinydashboard::menuItem(text = "Recycling", tabName = "tabContainers", icon = icon("chart-line"))
     ,shinydashboard::menuItem(text = "Employment", tabName = "tabEmployment", icon = icon("chart-line"))
-    ,shinydashboard::menuItem(text = "Electricity", tabName = "tabElectricity", icon = icon("chart-line"))
     )
 )
 
@@ -63,9 +63,47 @@ style.header <- "text-align: left; padding-bottom: 10px;
 body <- shinydashboard::dashboardBody(
   shinydashboard::tabItems(
     #************************************
-    # menuItem "About"
+    # menuItem "Electricity"
     #************************************
     shinydashboard::tabItem(
+      tabName = "tabElectricity"
+      ,fluidRow(
+        shinydashboard::valueBoxOutput(outputId = "valueBox.amount.paid.electricity.consumption.total.breakdown", width = 5)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.electricity.consumption.total", width = 2)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.solar.export.total", width = 2)
+      ) # Close fluidRow
+      ,fluidRow(
+        box(title="Electricity usage and solar export"
+            ,status="primary"
+            ,solidHeader=TRUE
+            ,width = 12 # By default box is set to width = 6. full width = 12
+            ,height = 455 # Plot can go outside box border if height too small # White space if height too big
+            ,plotOutput(outputId="plot.energy.usage.solar.export"))
+      ) # Close fluidRow
+      ,fluidRow(
+        box(title = "Alinta energy bill- balance brought forward"
+            ,status = "primary"
+            ,solidHeader = TRUE
+            ,width = 12
+            ,DTOutput(outputId="table.electricity.usage.solar.export")
+        )
+      ) # Close fluidRow
+      ,fluidRow(
+        box(
+          title = shiny::HTML(
+            "Alinta energy bill - supply charges and rates. All rates listed per KWh and included GST")
+          ,status = "primary"
+          ,solidHeader = TRUE
+          ,width = 12
+          ,DTOutput(outputId="table.rates.over.supply.period")
+        ) # Close box()
+      ) # Close fluidRow
+    ) # Close tabItem() for menuItem "Electricity"
+    
+    #************************************
+    # menuItem "About"
+    #************************************
+    ,shinydashboard::tabItem(
       tabName = "tabAbout"
       ,fluidRow(
         box(
@@ -278,40 +316,6 @@ body <- shinydashboard::dashboardBody(
         ) # Close box()
       ) # Close fluidRow
       ) # Close tabItem() for menuItem "Employment"
-    #************************************
-    # menuItem "Electricity"
-    #************************************
-    ,shinydashboard::tabItem(
-      tabName = "tabElectricity"
-      ,fluidRow(
-        box(title="Electricity usage and solar export"
-            ,status="primary"
-            ,solidHeader=TRUE
-            ,width = 12 # By default box is set to width = 6. full width = 12
-            ,height = 455 # Plot can go outside box border if height too small # White space if height too big
-            ,plotOutput(outputId="plot.energy.usage.solar.export"))
-        ) # Close fluidRow
-      ,fluidRow(
-        box(title = "Alinta energy bill- balance brought forward"
-            ,status = "primary"
-            ,solidHeader = TRUE
-            ,width = 12
-            ,DTOutput(outputId="table.electricity.usage.solar.export")
-        )
-      ) # Close fluidRow
-      ,fluidRow(
-        box(
-          title = shiny::HTML(
-            "Alinta energy bill - supply charges and rates. All rates listed per KWh and included GST")
-          ,status = "primary"
-          ,solidHeader = TRUE
-          ,width = 12
-          ,DTOutput(outputId="table.rates.over.supply.period")
-        )
-      ) # Close fluidRow
-      
-      
-      ) # Close tabItem() for menuItem "Electricity"
   ) # Close tabItems
 ) # Close dashboardBody()
 

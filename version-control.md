@@ -184,3 +184,12 @@ git commit -m "Added electricity usage and solar export chart, table and rate ta
 git push origin main
 ```
 
+## 2025-08-20
+```bash
+cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
+git add .
+git commit -m "Added electricity consumption amount paid value box"
+git push origin main
+```
+
+

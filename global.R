@@ -894,11 +894,53 @@ alinta_bills_balance_brought_forward_table_data <- readr::read_tsv(
 )
 # dim(alinta_bills_balance_brought_forward_table_data) 10 7
 
+alinta_bills_usage_rates_total_credits <-readr::read_tsv(
+  file = "data/alinta_bills_usage_rates_total_credits.tsv"
+  ,col_types = readr::cols()
+  )
+# dim(alinta_bills_usage_rates_total_credits) 65 12
+
 alinta_bills_rates_over_supply_period <- readr::read_tsv(
   file = file.path("data","alinta_bills_rates_over_supply_period.tsv")
   ,col_types = readr::cols()
 ) # dim(alinta_bills_rates_over_supply_period) 10 13
 
+#-------------------------------
+# valueBox
+## Total electricity consumption
+## Total solar export
+#-------------------------------
+electricity_supply_start_first <- min(alinta_bills_balance_brought_forward_table_data$supply_start, na.rm = TRUE)
+electricity_supply_end_last  <- max(alinta_bills_balance_brought_forward_table_data$supply_end, na.rm = TRUE)
+
+electricity.consumption.general.usage<- sum(alinta_bills_balance_brought_forward_table_data$peak_kwh, na.rm = TRUE)
+electricity.consumption.controlled.load <-sum(alinta_bills_balance_brought_forward_table_data$ctl1_kwh, na.rm = TRUE)
+electricity.consumption.total <- sum(electricity.consumption.general.usage, electricity.consumption.controlled.load) 
+
+solar.export.total <- sum(alinta_bills_balance_brought_forward_table_data$solar_kwh, na.rm = TRUE)
+
+#-----------------------------------------------
+# valueBox
+## Total amount paid for electricity consumption
+## Total amount earned from solar export
+#-----------------------------------------------
+amount.paid.total.by.item <- alinta_bills_usage_rates_total_credits %>% 
+  dplyr::group_by(Item) %>% 
+  dplyr::summarise(total.paid.or.earned=sum(total_num))
+# dim(amount.paid.total.by.item) 6 2
+
+total.amount.paid.controlled.load.1 <- as.numeric(amount.paid.total.by.item[1,2])
+total.amount.paid.daily.charge <- as.numeric(amount.paid.total.by.item[2,2])
+total.amount.paid.daily.charge.controlled.load.1 <- as.numeric(amount.paid.total.by.item[3,2])
+total.amount.paid.peak.hour.surcharge <- as.numeric(amount.paid.total.by.item[4,2])
+total.amount.paid.general.usage <- as.numeric(amount.paid.total.by.item[5,2])
+total.amount.earned.solar.export <- as.numeric(amount.paid.total.by.item[6,2])
+
+
+#-----------------------------------------------
+# valueBox
+
+#-----------------------------------------------
 
 #---------------------------
 # Check shinyapps.io account

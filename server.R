@@ -823,6 +823,91 @@ server <- function(input, output, session) {
     DT::datatable(data = table_data
                   ,options = list(autoWidth = FALSE, searching = TRUE))
   })
+  #-----------------------------------------------------------------------------------------------------------
+  # valueBox: 
+  ## Year to date electricity consumption and solar export
+  ## Valid colors are: red, yellow, aqua, blue, light-blue, green, navy, teal, olive, lime, orange, fuchsia, purple, maroon, black.
+  ## [How to break line inside a paste0() function in shiny dashboard](https://stackoverflow.com/questions/51079153/how-to-break-line-inside-a-paste0-function-in-shiny-dashboard)
+  #-----------------------------------------------------------------------------------------------------------
+  function.renderValueBox(shiny_output = output
+                          ,output.id="valueBox.electricity.consumption.total"
+                          ,argument.value=paste0(electricity.consumption.total, "KWh")
+                          ,argument.subtitle=HTML(paste0(
+                             "consumed from ", electricity_supply_start_first," to",electricity_supply_end_last, " including",br()
+                            ,"<b>",electricity.consumption.general.usage," KWh"," general usage","</b>", br()
+                            ,"<b>",electricity.consumption.controlled.load," KWh"," hot water system","</b>")
+                          ) # Close HTML()
+                          ,argument.color="black")
+  
+  #------------------------------------------------------
+  # valueBox: 
+  ## Year to date amount paid for electricity consumption
+  ## Total, Rebate and amount paid copied from bills PDF
+  ###-------------------------------
+  ### period    Total   Rebate  Paid
+  ###-------------------------------
+  ### 20240820  37.75   -       37.75
+  ### 20240920  $106.67 75      31.67
+  ### 20241201  83.54   -       83.54 
+  ### 20250101  $89.27  75      14.27
+  ### 20250201  $69.46  -       69.46
+  ### 20250301  $78.61  75      3.61
+  ### 20250401  $66.57  -       66.57
+  ### 20250501  79.85   -       79.85
+  ### 20250601  $158.17 75      83.17
+  ### 20250701  211.91  -       211.91
+  ### SUM       981.80  300     681.8            
+  ###-------------------------------
+
+  #------------------------------------------------------
+  AUS.Govt.Energy.Price.Relief.Plan.Rebate <- 75
+  times.received <- 4
+  AUS.Govt.Energy.Price.Relief.Plan.Rebate.total <- AUS.Govt.Energy.Price.Relief.Plan.Rebate*times.received
+  function.renderValueBox(
+     shiny_output = output
+    ,output.id="valueBox.amount.paid.electricity.consumption.total.breakdown"
+    ,argument.value=paste0(
+      "$AUD "
+      ,sum( total.amount.paid.controlled.load.1
+            ,total.amount.paid.daily.charge
+            ,total.amount.paid.daily.charge.controlled.load.1
+            ,total.amount.paid.general.usage
+            ,total.amount.paid.peak.hour.surcharge) - sum(total.amount.earned.solar.export, AUS.Govt.Energy.Price.Relief.Plan.Rebate.total)
+      ) # Close paste0()
+    ,argument.subtitle=HTML(paste0(
+       "Paid for electricity consumption from "
+      ,electricity_supply_start_first," to ", electricity_supply_end_last, " to Alinta, including",br()
+      ,"<b>", "$AUD ", total.amount.paid.general.usage," for general usage","</b>", br()
+      ,"<b>", "$AUD ", total.amount.paid.peak.hour.surcharge, " for peak hour surcharge","</b>", br()
+      ,"<b>", "$AUD ", total.amount.paid.daily.charge, " for daily charge","</b>", br()
+      ,"<b>", "$AUD ", total.amount.paid.controlled.load.1," for hot water system","</b>", br()
+      ,"<b>", "$AUD ", total.amount.paid.daily.charge.controlled.load.1, " for hot water system daily charge","</b>", br()
+      ,"<b>", "$AUD ", AUS.Govt.Energy.Price.Relief.Plan.Rebate.total, " earned from AUS Govt Energy Price Relief Plan Rebate","</b>", br()
+      ,"<b>", "$AUD ", total.amount.earned.solar.export, " earned from solar export") # Close paste0()
+                          ) # Close HTML()
+                          ,argument.color="black")
+  
+  #----------------------------------------------
+  # valueBox: 
+  ## Year to date amount earned from solar export
+  #----------------------------------------------
+  function.renderValueBox(shiny_output = output
+                          ,output.id="valueBox.amount.paid.electricity.consumption.earned.solar.export.total"
+                          ,argument.value=paste0(electricity.consumption.total, "KWh")
+                          ,argument.subtitle=HTML(paste0(
+                            "consumed from ", electricity_supply_start_first," to",electricity_supply_end_last, " including",br()
+                            ,"<b>",electricity.consumption.general.usage," KWh"," general usage","</b>", br()
+                            ,"<b>",electricity.consumption.controlled.load," KWh"," hot water system","</b>")
+                          ) # Close HTML()
+                          ,argument.color="black")
+  
+  function.renderValueBox(shiny_output = output
+                          ,output.id="valueBox.solar.export.total"
+                          ,argument.value=paste0(solar.export.total, "KWh")
+                          ,argument.subtitle=HTML(paste0("Exported to grid from 4 KWh solar panels since ", electricity_supply_start_first)
+                                                  ) # Close HTML()
+                          ,argument.color="black")
+  
 
 } # Close the server function
 

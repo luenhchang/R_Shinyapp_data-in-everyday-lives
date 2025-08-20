@@ -271,10 +271,35 @@ parse_bill <- function(file) {
 
 # Run the function over txt file 10 to 1
 parsed_list <- lapply(file.paths.txt.files[c(10:1)], parse_bill)
-lapply(parsed_list, dim)   # check rows per file
-all_bills <- do.call(rbind, parsed_list) # dim(all_bills) 65 6
 
-# Collapse multiple similar records to single record
+lapply(parsed_list, dim)   # check rows per file
+
+usage.rates.total.credits <- do.call(rbind, parsed_list) %>%
+  dplyr::mutate(
+    # extract supply start date from file names
+    supply_start = stringr::str_extract(filename, "\\d{8}")
+    ,supply_start = lubridate::ymd(supply_start)
+    ,qty_num = readr::parse_number(Quantity)
+    # Remove "$" and convert to numeric
+    ,Rate.Incl.GST_num=as.numeric(gsub("\\$", "", Rate.Incl.GST))
+    ,total_num=readr::parse_number(Total.Incl.GST)
+    ,rate_clean = gsub("\\$", "", Rate.Incl.GST)
+    ,rate_clean = gsub("cr", "", rate_clean, ignore.case = TRUE)
+    ,rate_clean = trimws(rate_clean)
+    ,rate_num = as.numeric(rate_clean)
+  )
+# dim(usage.rates.total.credits) 65 12
+
+# Export rate summary wide data to TSV
+readr::write_tsv(usage.rates.total.credits, "data/alinta_bills_usage_rates_total_credits.tsv")
+
+#----------------------------------------------------------------------------------------------------------------
+# Collapse multiple periods to single period per supply period
+## e.g., Alinta-energy-bill_supply-period_20240920-20241130.pdf has two periods
+### 20 Sep 24 to 17 Nov 24 (59 Days)
+### 18 Nov 24 to 30 Nov 24 (13 Days)
+#### each has its own Controlled Load 1, Daily Charge, Daily Charge - Controlled Load 1, Standard Solar, and Peak
+#----------------------------------------------------------------------------------------------------------------
 fmt_rate <- function(x) {
   if (is.na(x)) return(NA_character_)
   if (x < 0) {
@@ -284,14 +309,9 @@ fmt_rate <- function(x) {
   }
 }
 
-all_bills_summary <- all_bills %>%
-  dplyr::mutate(
-     qty_num = readr::parse_number(Quantity)
-    ,rate_clean = gsub("\\$", "", Rate.Incl.GST)
-    ,rate_clean = gsub("cr", "", rate_clean, ignore.case = TRUE)
-    ,rate_clean = trimws(rate_clean)
-    ,rate_num = as.numeric(rate_clean)
-  ) %>%
+# Summarise data to one Item per supply period
+## There are separate periods in 2 bills
+usage.rates.total.credits.summary.by.item <- usage.rates.total.credits %>%
   dplyr::group_by(filename, Item, IsCredit) %>%
   dplyr::summarise(
      Quantity = if (all(grepl("days", Quantity))) {
@@ -326,17 +346,8 @@ all_bills_summary <- all_bills %>%
     .groups = "drop"
   ) 
 
-all_bills_summary <- all_bills_summary %>% 
-  dplyr::mutate(
-    # extract supply start date from file names
-    supply_start = stringr::str_extract(filename, "\\d{8}")
-    ,supply_start = lubridate::ymd(supply_start)
-    # Remove "$" and convert to numeric
-    ,Rate.Incl.GST_num=as.numeric(gsub("\\$", "", Rate.Incl.GST))
-  )
-
 # Reshape Rate.Incl.GST (character) and Rate.Incl.GST_num (numeric) to wide format
-all_bills_wide <- all_bills_summary %>%
+rates.summary.by.item.wide <- usage.rates.total.credits.summary.by.item %>%
   dplyr::mutate(
     # clean Item names: replace space, dot, dash with underscore
     Item_clean = stringr::str_replace_all(Item, "[ .-]", "_")
@@ -349,8 +360,8 @@ all_bills_wide <- all_bills_summary %>%
   ) %>%
   # remove multiple consecutive underscores
   dplyr::rename_with(~ stringr::str_replace_all(., "_+", "_"))
-# dim(all_bills_wide) 10 13
+# dim(rates.summary.by.item.wide) 10 13
 
-# Export to TSV
-readr::write_tsv(all_bills_wide, "data/alinta_bills_rates_over_supply_period.tsv")
+# Export rate summary wide data to TSV
+readr::write_tsv(rates.summary.by.item.wide, "data/alinta_bills_rates_over_supply_period.tsv")
 
