@@ -120,7 +120,7 @@ library(magick)
 library(plotly)
 library(ggforce)
 library(viridisLite)
-
+library(dplyr)
 #------------------------------------------------------------------------
 # Directory in local PC
 ## 
@@ -936,12 +936,18 @@ total.amount.paid.peak.hour.surcharge <- as.numeric(amount.paid.total.by.item[4,
 total.amount.paid.general.usage <- as.numeric(amount.paid.total.by.item[5,2])
 total.amount.earned.solar.export <- as.numeric(amount.paid.total.by.item[6,2])
 
-
 #-----------------------------------------------
 # valueBox
-
+## Current rates and charges
 #-----------------------------------------------
-
+most_recent_Rate_Incl_GST_Controlled_Load_1 <- paste0(tail(alinta_bills_rates_over_supply_period, n=1)[1,2],"/KWh")
+most_recent_Rate_Incl_GST_Daily_Charge <- paste0(tail(alinta_bills_rates_over_supply_period, n=1)[1,3],"/Day")
+most_recent_Rate_Incl_GST_Daily_Charge_Controlled_Load_1 <-paste0(tail(alinta_bills_rates_over_supply_period, n=1)[1,4],"/Day")
+most_recent_Rate_Incl_GST_NonPeak <- paste0(tail(alinta_bills_rates_over_supply_period, n=1)[1,5],"/KWh")
+most_recent_Rate_Incl_GST_Standard_Solar <- paste0(tail(alinta_bills_rates_over_supply_period, n=1)[1,6],"/KWh")
+most_recent_Rate_Incl_GST_Peak <- paste0("$",tail(alinta_bills_rates_over_supply_period, n=1)[1,11] + 
+                                             tail(alinta_bills_rates_over_supply_period, n=1)[1,13]
+                                         ,"/KWh")
 #---------------------------
 # Check shinyapps.io account
 #---------------------------

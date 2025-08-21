@@ -856,7 +856,7 @@ server <- function(input, output, session) {
   ### 20250501  79.85   -       79.85
   ### 20250601  $158.17 75      83.17
   ### 20250701  211.91  -       211.91
-  ### SUM       981.80  300     681.8            
+  ### SUM       981.80  300     681.8
   ###-------------------------------
 
   #------------------------------------------------------
@@ -876,7 +876,7 @@ server <- function(input, output, session) {
       ) # Close paste0()
     ,argument.subtitle=HTML(paste0(
        "Paid for electricity consumption from "
-      ,electricity_supply_start_first," to ", electricity_supply_end_last, " to Alinta, including",br()
+      ,electricity_supply_start_first," to ", electricity_supply_end_last, " including",br()
       ,"<b>", "$AUD ", total.amount.paid.general.usage," for general usage","</b>", br()
       ,"<b>", "$AUD ", total.amount.paid.peak.hour.surcharge, " for peak hour surcharge","</b>", br()
       ,"<b>", "$AUD ", total.amount.paid.daily.charge, " for daily charge","</b>", br()
@@ -908,7 +908,22 @@ server <- function(input, output, session) {
                                                   ) # Close HTML()
                           ,argument.color="black")
   
-
+  #-----------------------------------------------
+  # valueBox
+  ## Current rates and charges
+  #-----------------------------------------------
+  function.renderValueBox(shiny_output = output
+                          ,output.id="valueBox.Alinta.most.recent.rates.charges"
+                          ,argument.value=paste0("Current rates & charges")
+                          ,argument.subtitle=HTML(paste0(
+                             "<b>",most_recent_Rate_Incl_GST_NonPeak, " Non-peak hour usage","</b>", br()
+                            ,"<b>",most_recent_Rate_Incl_GST_Peak, " Peak hour (4PM-9PM) usage","</b>", br()
+                            ,"<b>",most_recent_Rate_Incl_GST_Controlled_Load_1, ' Controlled load usage',"</b>", br()
+                            ,"<b>",most_recent_Rate_Incl_GST_Daily_Charge, " Daily charge","</b>", br()
+                            ,"<b>",most_recent_Rate_Incl_GST_Daily_Charge_Controlled_Load_1, " Controlled load daily charge","</b>", br()
+                            ,"<b>",most_recent_Rate_Incl_GST_Standard_Solar, " Solar feed-in tariff","</b>") # Close paste0()
+                            ) # Close HTML()
+                          ,argument.color="black")
 } # Close the server function
 
 #************************************************************************************************#

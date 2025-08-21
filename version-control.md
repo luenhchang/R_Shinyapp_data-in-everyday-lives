@@ -191,5 +191,13 @@ git add .
 git commit -m "Added electricity consumption amount paid value box"
 git push origin main
 ```
+## 2025-08-21
+```bash
+cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
+git add .
+git commit -m "Added current rates and charges valueBox"
+git push origin main
+
+
 
 

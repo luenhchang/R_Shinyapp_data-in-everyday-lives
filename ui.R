@@ -68,7 +68,8 @@ body <- shinydashboard::dashboardBody(
     shinydashboard::tabItem(
       tabName = "tabElectricity"
       ,fluidRow(
-        shinydashboard::valueBoxOutput(outputId = "valueBox.amount.paid.electricity.consumption.total.breakdown", width = 5)
+        shinydashboard::valueBoxOutput(outputId = "valueBox.Alinta.most.recent.rates.charges", width = 4)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.amount.paid.electricity.consumption.total.breakdown", width = 4)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.electricity.consumption.total", width = 2)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.solar.export.total", width = 2)
       ) # Close fluidRow
