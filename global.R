@@ -898,7 +898,7 @@ alinta_bills_usage_rates_total_credits <-readr::read_tsv(
   file = "data/alinta_bills_usage_rates_total_credits.tsv"
   ,col_types = readr::cols()
   )
-# dim(alinta_bills_usage_rates_total_credits) 65 12
+# dim(alinta_bills_usage_rates_total_credits) 72 12
 
 alinta_bills_rates_over_supply_period <- readr::read_tsv(
   file = file.path("data","alinta_bills_rates_over_supply_period.tsv")

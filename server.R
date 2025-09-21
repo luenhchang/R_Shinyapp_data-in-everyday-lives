@@ -833,7 +833,7 @@ server <- function(input, output, session) {
                           ,output.id="valueBox.electricity.consumption.total"
                           ,argument.value=paste0(electricity.consumption.total, "KWh")
                           ,argument.subtitle=HTML(paste0(
-                             "consumed from ", electricity_supply_start_first," to",electricity_supply_end_last, " including",br()
+                             "consumed from ", electricity_supply_start_first," to ",electricity_supply_end_last, " including",br()
                             ,"<b>",electricity.consumption.general.usage," KWh"," general usage","</b>", br()
                             ,"<b>",electricity.consumption.controlled.load," KWh"," hot water system","</b>")
                           ) # Close HTML()

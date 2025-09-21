@@ -197,7 +197,15 @@ cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
 git add .
 git commit -m "Added current rates and charges valueBox"
 git push origin main
+```
 
+## 2025-09-21
+```bash
+cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
+git add .
+git commit -m "Updated parse_LLMWhisperer_PDF.R to extract 2025 Aug tables "
+git push origin main
+```
 
 
 
