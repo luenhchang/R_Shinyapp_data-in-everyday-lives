@@ -203,9 +203,15 @@ git push origin main
 ```bash
 cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
 git add .
-git commit -m "Updated parse_LLMWhisperer_PDF.R to extract 2025 Aug tables "
+git commit -m "Updated parse_LLMWhisperer_PDF.R to extract 2025 Aug tables"
 git push origin main
 ```
 
-
+## 2025-09-28
+```bash
+cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
+git add .
+git commit -m "Updated parse_LLMWhisperer_PDF.R to extract Your meter readings table"
+git push origin main
+```
 

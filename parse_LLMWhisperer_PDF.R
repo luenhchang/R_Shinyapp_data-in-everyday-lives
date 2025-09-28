@@ -4,6 +4,7 @@
 dir.C <- "C:"
 dir.app <- file.path(dir.C,"GoogleDrive_MyDrive","scripts","RProject_Shinyapp_data-in-everyday-lives")
 dir.extracted.text <- file.path(dir.app,"electricity-bill","unstract-LLMWhisperer-extracted-text")
+dir.urban.utility.extracted.text <- file.path(dir.app,"Urban-utilities-bill","unstract-LLMWhisperer-extracted-text")
 setwd(dir.app)
 
 #---------------------------------------------------------------------------------------------
@@ -552,3 +553,183 @@ rates.summary.by.item.wide <- usage.rates.total.credits.summary.by.item %>%
 # Export rate summary wide data to TSV
 readr::write_tsv(rates.summary.by.item.wide, "data/alinta_bills_rates_over_supply_period.tsv")
 
+#---------------------------------------------------------------------------------------------
+# Tabulate extracted text in a similar structure as the "Your meter readings" table in PDF
+## Locate table start with text "Your meter readings"
+## Locate table end with text "Water Usage"
+## Extracted table looks like
+### SerialNumber	ReadDate	Reading	Usage	Comment
+### ADC1511588	  13/06/2024	1692	NA	  NA
+### NA	          10/09/2024	1716	24KL	NA
+
+## This example works on single file
+#---------------------------------------------------------------------------------------------
+library(stringr)
+library(dplyr)
+library(tidyr)
+
+# Get file paths
+file.paths.txt.files.urban.utilities <- list.files(path = dir.urban.utility.extracted.text, pattern = "\\.txt$", full.names = TRUE) # length(file.paths.txt.files.urban.utilities) 2
+
+# Read text file
+txt <- readLines(file.paths.txt.files.urban.utilities[1])
+
+# Locate start ("Serial Number") and end ("Water Usage")
+start <- grep("^\\s*Serial Number", txt)
+end   <- grep("^\\s*Water Usage", txt)
+
+# Extract block
+meter_block <- txt[start:(end-1)] %>%
+  str_trim() %>%
+  .[. != ""]
+
+# Remove header and irrelevant lines
+meter_block_clean <- meter_block[!str_detect(meter_block, regex("Serial Number|Your usage|kilolitres|Water Usage", ignore_case = TRUE))]
+meter_block_clean <- str_squish(meter_block_clean)  # remove extra spaces
+
+# Initialize empty tibble
+meter_tbl <- tibble(
+  Serial.Number = character(),
+  Read.Date = as.Date(character()),
+  Reading = numeric(),
+  Usage = numeric(),
+  Comment = character()
+)
+
+serial_current <- NA_character_
+
+for (line in meter_block_clean) {
+  
+  # Split line into fields
+  fields <- str_split(line, "\\s+")[[1]]
+  
+  # If first field looks like a Serial Number (letters/numbers, not a date)
+  if (!str_detect(fields[1], "^\\d{2}/\\d{2}/\\d{4}$")) {
+    serial_current <- fields[1]
+    read_date <- dmy(fields[2])
+    reading <- as.numeric(fields[3])
+    usage <- ifelse(length(fields) >= 4, as.numeric(str_remove(fields[4], "KL")), NA_real_)
+  } else {
+    # First field is a date, Serial Number missing → use previous
+    read_date <- dmy(fields[1])
+    reading <- as.numeric(fields[2])
+    usage <- ifelse(length(fields) >= 3, as.numeric(str_remove(fields[3], "KL")), NA_real_)
+  }
+  
+  meter_tbl <- bind_rows(meter_tbl, tibble(
+    Serial.Number = serial_current,
+    Read.Date = read_date,
+    Reading = reading,
+    Usage = usage,
+    Comment = NA_character_
+  ))
+}
+
+meter_tbl
+
+#---------------------------------------------------------------------------------------------
+# Tabulate extracted text in a similar structure as the "Your meter readings" table in PDF
+## Locate table start with text "Your meter readings"
+## Locate table end with text "Water Usage"
+## Extracted table looks like
+### SerialNumber	ReadDate	Reading	Usage	Comment
+### ADC1511588	  13/06/2024	1692	NA	  NA
+### NA	          10/09/2024	1716	24KL	NA
+
+## This example works on all file
+#---------------------------------------------------------------------------------------------
+
+library(dplyr)
+library(stringr)
+library(lubridate)
+library(tidyr)
+library(purrr)
+
+# Get file paths
+file.paths.txt.files.urban.utilities <- list.files(path = dir.urban.utility.extracted.text, pattern = "\\.txt$", full.names = TRUE) # length(file.paths.txt.files.urban.utilities) 5
+
+# Function to parse a single urban utility text file
+parse_your_meter_readings_table <- function(file_path) {
+  # Read file (suppress warning for incomplete final line)
+  txt <- readLines(file_path, warn = FALSE)
+  
+  # Locate start and end of the meter readings block
+  start <- grep("^\\s*Serial Number", txt)
+  end   <- grep("^\\s*Water Usage", txt)
+  
+  if (length(start) == 0 | length(end) == 0) return(tibble())  # skip if no data
+  
+  meter_block <- txt[start:(end-1)] %>%
+    str_trim() %>%
+    .[. != ""]
+  
+  # Remove header and irrelevant lines
+  meter_block_clean <- meter_block[!str_detect(meter_block, regex("Serial Number|Your usage|kilolitres|Water Usage", ignore_case = TRUE))]
+  meter_block_clean <- str_squish(meter_block_clean)
+  
+  # Initialize empty tibble
+  meter_tbl <- tibble(
+    Serial.Number = character(),
+    Read.Date = as.Date(character()),
+    Reading = numeric(),
+    Usage = numeric(),
+    Comment = character()
+  )
+  
+  serial_current <- NA_character_
+  
+  for (line in meter_block_clean) {
+    fields <- str_split(str_squish(line), "\\s+")[[1]]
+    
+    if (!str_detect(fields[1], "^\\d{2}/\\d{2}/\\d{4}$")) {
+      # First field is Serial Number
+      serial_current <- fields[1]
+      read_date <- dmy(fields[2])
+      reading <- as.numeric(fields[3])
+      # Only treat last field as Usage if it contains 'kL' (case-insensitive)
+      last_field <- fields[length(fields)]
+      usage <- ifelse(str_detect(last_field, regex("kL", ignore_case = TRUE)),
+                      as.numeric(str_extract(last_field, "\\d+")),
+                      NA_real_)
+    } else {
+      # First field is date
+      read_date <- dmy(fields[1])
+      reading <- as.numeric(fields[2])
+      last_field <- ifelse(length(fields) >= 3, fields[length(fields)], "")
+      usage <- ifelse(str_detect(last_field, regex("kL", ignore_case = TRUE)),
+                      as.numeric(str_extract(last_field, "\\d+")),
+                      NA_real_)
+    }
+    
+    meter_tbl <- bind_rows(meter_tbl, tibble(
+      Serial.Number = serial_current,
+      Read.Date = read_date,
+      Reading = reading,
+      Usage = usage,
+      Comment = NA_character_
+    ))
+  }
+  
+  return(meter_tbl)
+}
+
+# Example: Parse multiple files and stack into a single tibble
+all_meter_data <- map_dfr(file.paths.txt.files.urban.utilities, parse_your_meter_readings_table)
+
+# Optional: sort by Serial Number and Read Date
+all_meter_data <- all_meter_data %>%
+  arrange(Serial.Number, Read.Date)
+
+all_meter_data
+
+# Serial.Number Read.Date  Reading Usage Comment
+# 1 ADC1511588    2024-06-13    1692    NA NA
+# 2 ADC1511588    2024-09-10    1716    24 NA
+# 3 ADC1511588    2024-09-10    1716    NA NA
+# 4 ADC1511588    2024-12-10    1727    11 NA
+# 5 ADC1511588    2024-12-10    1727    NA NA
+# 6 ADC1511588    2025-03-20    1738    11 NA
+# 7 ADC1511588    2025-03-20    1738    NA NA
+# 8 ADC1511588    2025-06-13    1750    12 NA
+# 9 ADC1511588    2025-06-13    1750    NA NA
+# 10 ADC1511588    2025-09-19    1765    15 NA
