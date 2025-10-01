@@ -871,14 +871,14 @@ server <- function(input, output, session) {
       ,sum( total.amount.paid.controlled.load.1
             ,total.amount.paid.daily.charge
             ,total.amount.paid.daily.charge.controlled.load.1
-            ,total.amount.paid.general.usage
-            ,total.amount.paid.peak.hour.surcharge) - sum(total.amount.earned.solar.export, AUS.Govt.Energy.Price.Relief.Plan.Rebate.total)
+            ,total.amount.all.hours.usage
+            ) - sum(total.amount.earned.solar.export, AUS.Govt.Energy.Price.Relief.Plan.Rebate.total)
       ) # Close paste0()
+    
     ,argument.subtitle=HTML(paste0(
        "Paid for electricity consumption from "
       ,electricity_supply_start_first," to ", electricity_supply_end_last, " including",br()
-      ,"<b>", "$AUD ", total.amount.paid.general.usage," for general usage","</b>", br()
-      ,"<b>", "$AUD ", total.amount.paid.peak.hour.surcharge, " for peak hour surcharge","</b>", br()
+      ,"<b>", "$AUD ", total.amount.all.hours.usage," for all-hours usage","</b>", br()
       ,"<b>", "$AUD ", total.amount.paid.daily.charge, " for daily charge","</b>", br()
       ,"<b>", "$AUD ", total.amount.paid.controlled.load.1," for hot water system","</b>", br()
       ,"<b>", "$AUD ", total.amount.paid.daily.charge.controlled.load.1, " for hot water system daily charge","</b>", br()

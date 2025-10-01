@@ -32,3 +32,6 @@ supply_start	type	kwh	month_year	month_year_factor	group	sort_ym	plot_fill
 2025-08-01	Energy usage - all hours	328.09	Aug 2025	Aug 2025	Usage	2025-08-01	Energy usage - all hours
 2025-08-01	Energy usage - hot water systems	150.02	Aug 2025	Aug 2025	Usage	2025-08-01	Energy usage - hot water systems
 2025-08-01	Solar export	291.15	Aug 2025	Aug 2025	Solar	2025-08-01	Solar export
+2025-09-01	Energy usage - all hours	36.38	Sep 2025	Sep 2025	Usage	2025-09-01	Energy usage - all hours
+2025-09-01	Energy usage - hot water systems	59.66	Sep 2025	Sep 2025	Usage	2025-09-01	Energy usage - hot water systems
+2025-09-01	Solar export	163.52	Sep 2025	Sep 2025	Solar	2025-09-01	Solar export

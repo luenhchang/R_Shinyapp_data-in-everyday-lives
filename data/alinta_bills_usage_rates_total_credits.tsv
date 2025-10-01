@@ -1,4 +1,11 @@
 Item	Quantity	Rate.Incl.GST	Total.Incl.GST	IsCredit	filename	supply_start	qty_num	Rate.Incl.GST_num	total_num	rate_clean	rate_num
+Controlled Load 1	59.656 kWh	$0.18172	$10.85	FALSE	Alinta-energy-bill_supply-period_20250901-20250915.txt	2025-09-01	59.656	0.18172	10.850000000000001	0.18172	0.18172
+Daily Charge	15 days	$1.19361	$17.91	FALSE	Alinta-energy-bill_supply-period_20250901-20250915.txt	2025-09-01	15	1.19361	17.91	1.19361	1.19361
+Daily Charge - Controlled Load 1	15 days	$0.02717	$0.41	FALSE	Alinta-energy-bill_supply-period_20250901-20250915.txt	2025-09-01	15	0.02717	0.41000000000000003	0.02717	0.02717
+Standard Solar	163.519 kWh	-$0.04000	$6.54 cr	TRUE	Alinta-energy-bill_supply-period_20250901-20250915.txt	2025-09-01	163.51899999999998	-0.04	6.54	-0.04000	-0.04
+Off Peak	19.852 kWh	$0.26961	$5.36	FALSE	Alinta-energy-bill_supply-period_20250901-20250915.txt	2025-09-01	19.852	0.26961	5.359999999999999	0.26961	0.26961
+Peak	5.557 kWh	$0.41965	$2.33	FALSE	Alinta-energy-bill_supply-period_20250901-20250915.txt	2025-09-01	5.5569999999999995	0.41965	2.3299999999999996	0.41965	0.41965
+Shoulder	10.970 kWh	$0.31603	$3.47	FALSE	Alinta-energy-bill_supply-period_20250901-20250915.txt	2025-09-01	10.97	0.31603	3.4699999999999998	0.31603	0.31603
 Controlled Load 1	150.018 kWh	$0.18172	$27.26	FALSE	Alinta-energy-bill_supply-period_20250801-20250831.txt	2025-08-01	150.018	0.18172	27.259999999999998	0.18172	0.18172
 Daily Charge	31 days	$1.19361	$37.00	FALSE	Alinta-energy-bill_supply-period_20250801-20250831.txt	2025-08-01	31	1.19361	37	1.19361	1.19361
 Daily Charge - Controlled Load 1	31 days	$0.02717	$0.85	FALSE	Alinta-energy-bill_supply-period_20250801-20250831.txt	2025-08-01	31	0.02717	0.8500000000000001	0.02717	0.02717

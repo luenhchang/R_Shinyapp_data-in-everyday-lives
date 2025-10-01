@@ -886,24 +886,24 @@ alinta_bills_balance_brought_forward_plot_data <- readr::read_tsv(
       levels = unique(dplyr::arrange(., sort_ym) %>% dplyr::pull(month_year))
     )
   )
-# dim(alinta_bills_balance_brought_forward_plot_data) 30 8
+# dim(alinta_bills_balance_brought_forward_plot_data) 36 8
 
 alinta_bills_balance_brought_forward_table_data <- readr::read_tsv(
   file =file.path("data","alinta_bills_balance_brought_forward.tsv")
   ,col_types = readr::cols()
 )
-# dim(alinta_bills_balance_brought_forward_table_data) 10 7
+# dim(alinta_bills_balance_brought_forward_table_data) 12 7
 
 alinta_bills_usage_rates_total_credits <-readr::read_tsv(
   file = "data/alinta_bills_usage_rates_total_credits.tsv"
   ,col_types = readr::cols()
   )
-# dim(alinta_bills_usage_rates_total_credits) 72 12
+# dim(alinta_bills_usage_rates_total_credits) 79 12
 
 alinta_bills_rates_over_supply_period <- readr::read_tsv(
   file = file.path("data","alinta_bills_rates_over_supply_period.tsv")
   ,col_types = readr::cols()
-) # dim(alinta_bills_rates_over_supply_period) 10 13
+) # dim(alinta_bills_rates_over_supply_period) 11 18
 
 #-------------------------------
 # valueBox
@@ -927,15 +927,21 @@ solar.export.total <- sum(alinta_bills_balance_brought_forward_table_data$solar_
 amount.paid.total.by.item <- alinta_bills_usage_rates_total_credits %>% 
   dplyr::group_by(Item) %>% 
   dplyr::summarise(total.paid.or.earned=sum(total_num))
-# dim(amount.paid.total.by.item) 6 2
+# dim(amount.paid.total.by.item) 8 2
 
 total.amount.paid.controlled.load.1 <- as.numeric(amount.paid.total.by.item[1,2])
 total.amount.paid.daily.charge <- as.numeric(amount.paid.total.by.item[2,2])
 total.amount.paid.daily.charge.controlled.load.1 <- as.numeric(amount.paid.total.by.item[3,2])
 total.amount.paid.peak.hour.surcharge <- as.numeric(amount.paid.total.by.item[4,2])
-total.amount.paid.general.usage <- as.numeric(amount.paid.total.by.item[5,2])
-total.amount.earned.solar.export <- as.numeric(amount.paid.total.by.item[6,2])
+total.amount.paid.offpeak.usage <- as.numeric(amount.paid.total.by.item[5,2])
+total.amount.paid.peak.usage <- as.numeric(amount.paid.total.by.item[6,2])
+total.amount.paid.shoulder.usage <- as.numeric(amount.paid.total.by.item[7,2])
+total.amount.earned.solar.export <- as.numeric(amount.paid.total.by.item[8,2])
 
+total.amount.all.hours.usage <- sum( total.amount.paid.peak.hour.surcharge
+                                    ,total.amount.paid.offpeak.usage
+                                    ,total.amount.paid.peak.usage
+                                    ,total.amount.paid.shoulder.usage)
 #-----------------------------------------------
 # valueBox
 ## Current rates and charges

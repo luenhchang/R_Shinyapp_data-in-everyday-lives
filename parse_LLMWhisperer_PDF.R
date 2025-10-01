@@ -50,7 +50,7 @@ bill_df <- data.frame(
 ## This example works on all txt files
 #---------------------------------------------------------------------------------------------
 # Get file paths
-file.paths.txt.files <- list.files(path = dir.extracted.text, pattern = "\\.txt$", full.names = TRUE) # length(file.paths.txt.files) 11
+file.paths.txt.files <- list.files(path = dir.extracted.text, pattern = "\\.txt$", full.names = TRUE) # length(file.paths.txt.files) 12
 
 # Initialize empty list to store results
 all_data <- list()
@@ -99,7 +99,7 @@ for (file in file.paths.txt.files) {
 }
 
 # Combine all data.frames into one
-balance.brought.forward <- do.call(rbind, all_data) # dim(balance.brought.forward) 11 7
+balance.brought.forward <- do.call(rbind, all_data) # dim(balance.brought.forward) 12 7
 
 # Reshape data for plotting
 balance.brought.forward.long <- dplyr::select(balance.brought.forward, supply_start, peak_kwh, ctl1_kwh, solar_kwh) %>%
@@ -115,7 +115,7 @@ balance.brought.forward.long <- dplyr::select(balance.brought.forward, supply_st
                          solar_kwh = "Solar export"),
     month_year = format(lubridate::ymd(supply_start), "%b %Y"),
     month_year_factor = forcats::fct_reorder(month_year, lubridate::ymd(supply_start))
-  ) # dim(balance.brought.forward.long) 33 5
+  ) # dim(balance.brought.forward.long) 36 5
 
 # Prepare data
 stacked_data <- balance.brought.forward.long %>%
@@ -137,8 +137,7 @@ plot_data <- dplyr::bind_rows(stacked_data, solar_data) %>%
 
 # Create factor for chronological plotting
 plot_data$month_year_factor <- factor(plot_data$month_year, levels = unique(plot_data$month_year))
-
-# dim(plot_data) 33 8
+# dim(plot_data) 36 8
 
 # Export to TSV
 readr::write_tsv(balance.brought.forward, "data/alinta_bills_balance_brought_forward.tsv")
@@ -149,134 +148,7 @@ readr::write_tsv(plot_data, "data/plot_data_alinta_bills_balance_brought_forward
 ## This example works on all txt files
 #------------------------------------------------------------------------------------------------------------------
 
-# function version 13 (version 1 to 12 cannot work on File 6)
-parse_bill <- function(file) {
-  library(stringr)
-  
-  # 1) Read
-  raw <- readLines(file, warn = FALSE)
-  if (!length(raw)) return(data.frame())
-  
-  # 2) Locate table start (first time the header phrase appears)
-  start_ix <- which(str_detect(raw, regex("Usage,\\s*supply charges and applicable credits",
-                                          ignore_case = TRUE)))
-  if (!length(start_ix)) return(data.frame())
-  
-  lines <- raw[seq(from = start_ix[1], to = length(raw))]
-  
-  # 3) Pre-clean: remove header labels wherever they appear on the line
-  strip_labels <- function(s) {
-    s %>%
-      str_replace(regex("Usage,\\s*supply charges and applicable credits", ignore_case=TRUE), "") %>%
-      str_replace(regex("\\bQuantity\\b", ignore_case=TRUE), "") %>%
-      str_replace(regex("\\bRate\\s*Incl\\.?\\s*GST\\b", ignore_case=TRUE), "") %>%
-      str_replace(regex("\\bTotal\\s*Incl\\.?\\s*GST\\b", ignore_case=TRUE), "") %>%
-      str_squish()
-  }
-  lines <- vapply(lines, strip_labels, character(1))
-  
-  # 4) Drop obvious non-row noise (e.g., date range line under header, blank)
-  is_range_line <- function(s) {
-    str_detect(
-      s,
-      regex("\\b\\d{1,2}\\s+[A-Za-z]{3}\\s+\\d{2,4}\\s+to\\s+\\d{1,2}\\s+[A-Za-z]{3}\\s+\\d{2,4}\\b.*\\(\\d+\\s*Days?\\)",
-            ignore_case = TRUE)
-    )
-  }
-  lines <- lines[lines != "" & !vapply(lines, is_range_line, logical(1))]
-  
-  # 5) Patterns
-  qty_re   <- "(?i)\\d+\\.?\\d*\\s*(?:kW|kWh|days)"
-  rate_re  <- "-?\\$\\d+\\.\\d{2,5}"
-  total_re <- "\\$-?\\d+\\.\\d{2}(?:\\s*cr)?"
-  
-  # Full row: Item + qty + rate + total
-  full_re  <- paste0("^(.*?)\\s+(", qty_re, ")\\s+(", rate_re, ")\\s+(", total_re, ")\\s*$")
-  # Tail only: qty + rate + total
-  tail_re  <- paste0("^(", qty_re, ")\\s+(", rate_re, ")\\s+(", total_re, ")\\s*$")
-  
-  results <- list()
-  buf <- NULL  # holds a pending Item line (e.g., "Demand - March (31 days)")
-  
-  add_row <- function(item, qty, rate, total) {
-    # Normalize Demand to just "Demand"
-    item_norm <- str_replace(item, regex("^\\s*Demand\\b.*", ignore_case = TRUE), "Demand")
-    # Skip Rounding Adjustment rows entirely
-    if (str_detect(item_norm, regex("^Rounding Adjustment$", ignore_case = TRUE))) return()
-    
-    results[[length(results) + 1]] <<- data.frame(
-      Item            = item_norm,
-      Quantity        = qty,
-      Rate.Incl.GST   = rate,
-      Total.Incl.GST  = total,
-      IsCredit        = str_detect(total, regex("\\bcr\\b", ignore_case = TRUE)),
-      filename        = basename(file),
-      stringsAsFactors = FALSE
-    )
-  }
-  
-  for (ln in lines) {
-    if (ln == "") next
-    
-    # Case A: full row on one line
-    m <- str_match(ln, full_re)
-    if (!is.na(m[1])) {
-      item <- str_squish(m[2]); qty <- m[3]; rate <- m[4]; total <- m[5]
-      add_row(item, qty, rate, total)
-      buf <- NULL
-      next
-    }
-    
-    # Case B: tail only (qty + rate + total); combine with buffered item
-    m2 <- str_match(ln, tail_re)
-    if (!is.na(m2[1]) && !is.null(buf)) {
-      qty <- m2[2]; rate <- m2[3]; total <- m2[4]
-      add_row(buf, qty, rate, total)
-      buf <- NULL
-      next
-    }
-    
-    # Case C: line likely an Item-only line (no $ amounts, may include month/day text)
-    if (str_detect(
-      ln,
-      regex("^(Demand|Controlled Load 1|Daily Charge|Daily Charge - Controlled Load 1|Standard Solar|Peak)\\b",
-            ignore_case = TRUE)
-    ) && !str_detect(ln, "\\$\\d")
-    ) {
-      buf <- str_squish(ln)
-      next
-    }
-    
-    # Case D: salvage lines that contain a recognizable Item + scattered qty/rate/total but didn’t match due to spacing
-    if (str_detect(ln, "\\$\\d") &&
-        str_detect(ln, regex("(Demand|Controlled Load 1|Daily Charge|Standard Solar|Peak)", ignore_case = TRUE))) {
-      monies <- str_extract_all(ln, "\\$-?\\d+\\.\\d{2,5}(?:\\s*cr)?")[[1]]
-      if (length(monies) >= 2) {
-        total <- monies[length(monies)]
-        rate  <- monies[length(monies)-1]
-        # Remove trailing "rate total" to expose the left side (which should contain item + quantity)
-        ln_nom <- str_replace(ln, paste0("\\s*", rate, "\\s*", total, "\\s*$"), "")
-        # Take the LAST quantity prior to the prices
-        qtys <- str_extract_all(ln_nom, qty_re)[[1]]
-        if (length(qtys) >= 1) {
-          qty <- qtys[length(qtys)]
-          # Item is everything before the last quantity
-          item <- str_squish(str_replace(ln_nom, paste0("\\s*", qty, "\\s*$"), ""))
-          add_row(item, qty, rate, total)
-          buf <- NULL
-          next
-        }
-      }
-    }
-    
-    # Otherwise ignore noisy lines
-  }
-  
-  if (!length(results)) return(data.frame())
-  do.call(rbind, results)
-}
-
-# function version 14 (working on file 1 to 11)
+# function version 14 (working on file 1 to 12)
 extract_usage_supply_charges_and_credits <- function(file) {
   library(stringr)
   
@@ -409,8 +281,8 @@ extract_usage_supply_charges_and_credits <- function(file) {
   do.call(rbind, results)
 }
 
-# Run the function over txt file 10 to 1
-parsed_list <- lapply(file.paths.txt.files[c(11:1)], extract_usage_supply_charges_and_credits)
+# Run the function over txt file 12 to 1
+parsed_list <- lapply(file.paths.txt.files[c(12:1)], extract_usage_supply_charges_and_credits)
 
 lapply(parsed_list, dim)   # check rows per file
 
@@ -428,7 +300,7 @@ usage.rates.total.credits <- do.call(rbind, parsed_list) %>%
     ,rate_clean = trimws(rate_clean)
     ,rate_num = as.numeric(rate_clean)
   )
-# dim(usage.rates.total.credits) 72 12
+# dim(usage.rates.total.credits) 79 12
 
 # Export rate summary wide data to TSV
 readr::write_tsv(usage.rates.total.credits, "data/alinta_bills_usage_rates_total_credits.tsv")
