@@ -191,6 +191,7 @@ git add .
 git commit -m "Added electricity consumption amount paid value box"
 git push origin main
 ```
+
 ## 2025-08-21
 ```bash
 cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
@@ -223,5 +224,10 @@ git commit -m "Updated parse_LLMWhisperer_PDF.R to read Alinta-energy-bill_suppl
 git push origin main
 ```
 
-
+## 2025-10-29
+```bash
+cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
+git add .
+git commit -m "Created export-gsheet-data.R"
+git push origin main
 

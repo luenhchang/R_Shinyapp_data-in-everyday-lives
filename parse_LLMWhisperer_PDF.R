@@ -520,26 +520,25 @@ library(purrr)
 # Get file paths
 file.paths.txt.files.urban.utilities <- list.files(path = dir.urban.utility.extracted.text, pattern = "\\.txt$", full.names = TRUE) # length(file.paths.txt.files.urban.utilities) 5
 
-# Function to parse a single urban utility text file
+# Function to parse urban utility text files
 parse_your_meter_readings_table <- function(file_path) {
-  # Read file (suppress warning for incomplete final line)
   txt <- readLines(file_path, warn = FALSE)
   
-  # Locate start and end of the meter readings block
   start <- grep("^\\s*Serial Number", txt)
   end   <- grep("^\\s*Water Usage", txt)
   
-  if (length(start) == 0 | length(end) == 0) return(tibble())  # skip if no data
+  if (length(start) == 0 | length(end) == 0) return(tibble())
   
-  meter_block <- txt[start:(end-1)] %>%
+  meter_block <- txt[start:(end - 1)] %>%
     str_trim() %>%
     .[. != ""]
   
-  # Remove header and irrelevant lines
-  meter_block_clean <- meter_block[!str_detect(meter_block, regex("Serial Number|Your usage|kilolitres|Water Usage", ignore_case = TRUE))]
+  meter_block_clean <- meter_block[!str_detect(
+    meter_block,
+    regex("Serial Number|Your usage|kilolitres|Water Usage", ignore_case = TRUE)
+  )]
   meter_block_clean <- str_squish(meter_block_clean)
   
-  # Initialize empty tibble
   meter_tbl <- tibble(
     Serial.Number = character(),
     Read.Date = as.Date(character()),
@@ -558,7 +557,6 @@ parse_your_meter_readings_table <- function(file_path) {
       serial_current <- fields[1]
       read_date <- dmy(fields[2])
       reading <- as.numeric(fields[3])
-      # Only treat last field as Usage if it contains 'kL' (case-insensitive)
       last_field <- fields[length(fields)]
       usage <- ifelse(str_detect(last_field, regex("kL", ignore_case = TRUE)),
                       as.numeric(str_extract(last_field, "\\d+")),
@@ -582,26 +580,87 @@ parse_your_meter_readings_table <- function(file_path) {
     ))
   }
   
+  # ---- Collapse two rows into one ----
+  meter_tbl <- meter_tbl %>%
+    arrange(Serial.Number, Read.Date) %>%
+    group_by(Serial.Number) %>%
+    mutate(
+      meter.read.start.date = lag(Read.Date),
+      meter.read.start = lag(Reading),
+      meter.read.end.date = Read.Date,
+      meter.read.end = Reading,
+      water.usage.kL = Usage
+    ) %>%
+    filter(!is.na(meter.read.start.date)) %>%  # keep only end rows
+    select(
+      Serial.Number,
+      meter.read.start.date,
+      meter.read.end.date,
+      meter.read.start,
+      meter.read.end,
+      water.usage.kL
+    ) %>%
+    ungroup()
+  
   return(meter_tbl)
 }
 
-# Example: Parse multiple files and stack into a single tibble
-all_meter_data <- map_dfr(file.paths.txt.files.urban.utilities, parse_your_meter_readings_table)
+# Read all txt files
+urban.utility.bill.your.meter.reading.table <- purrr::map_dfr(
+  file.paths.txt.files.urban.utilities,
+  parse_your_meter_readings_table
+)
 
-# Optional: sort by Serial Number and Read Date
-all_meter_data <- all_meter_data %>%
-  arrange(Serial.Number, Read.Date)
+# Export Your meter readings data to TSV
+readr::write_tsv(urban.utility.bill.your.meter.reading.table, "data/urban-utilities_your-meter-readings-table.tsv")
 
-all_meter_data
+#--------------------------------
+# Urban utility water usage table
+#--------------------------------
 
-# Serial.Number Read.Date  Reading Usage Comment
-# 1 ADC1511588    2024-06-13    1692    NA NA
-# 2 ADC1511588    2024-09-10    1716    24 NA
-# 3 ADC1511588    2024-09-10    1716    NA NA
-# 4 ADC1511588    2024-12-10    1727    11 NA
-# 5 ADC1511588    2024-12-10    1727    NA NA
-# 6 ADC1511588    2025-03-20    1738    11 NA
-# 7 ADC1511588    2025-03-20    1738    NA NA
-# 8 ADC1511588    2025-06-13    1750    12 NA
-# 9 ADC1511588    2025-06-13    1750    NA NA
-# 10 ADC1511588    2025-09-19    1765    15 NA
+# function not working. Simplify it to work on either "State bulk water price" or "Urban Utilities distributor-retailer price" table, not both in one function
+parse_water_usage_table <- function(file_path) {
+  
+  # Read all lines and collapse into a single string with spaces
+  txt <- base::paste(readr::read_lines(file_path), collapse = " ")
+  
+  # Normalize spacing and units
+  txt <- stringr::str_squish(txt)  # collapse multiple spaces
+  txt <- stringr::str_replace_all(txt, "(?i)KL", "kL")
+  
+  # Regex pattern: allow optional spaces/newlines between name, year, amount
+  pattern <- "(State Bulk Water Charge|Tier 1 usage)\\s*(\\d{4}/\\d{2})\\s*(\\d+\\.?\\d*)kL\\s*@\\s*\\$([0-9\\.]+)/kL\\s*\\$([0-9\\.]+)"
+  
+  extracted <- stringr::str_match_all(txt, pattern)[[1]]
+  
+  if (base::nrow(extracted) == 0) return(tibble::tibble())
+  
+  df <- tibble::tibble(
+    water_price_name = base::paste(extracted[, 2], extracted[, 3]),
+    amount_used_KL   = base::as.numeric(extracted[, 4]),
+    unit_price       = base::paste0("$", extracted[, 5], "/kL"),
+    total            = base::as.numeric(extracted[, 6])
+  )
+  
+  df <- dplyr::mutate(df,
+                      Item = dplyr::case_when(
+                        stringr::str_detect(water_price_name, "State Bulk Water") ~ "State bulk water price",
+                        stringr::str_detect(water_price_name, "Tier 1") ~ "Urban Utilities distributor-retailer price",
+                        TRUE ~ NA_character_
+                      ),
+                      .before = water_price_name
+  )
+  
+  return(df)
+}
+
+# Read all txt files
+urban.utility.bill.water.usage.table <- purrr::map_dfr(
+  file.paths.txt.files.urban.utilities,
+  ~ parse_water_usage_table(.x)
+)
+
+
+# Export Your meter readings data to TSV
+readr::write_tsv(urban.utility.bill.your.meter.reading.table, "data/urban-utilities_your-meter-readings-table.tsv")
+

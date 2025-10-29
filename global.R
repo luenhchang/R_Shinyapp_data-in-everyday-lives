@@ -190,7 +190,7 @@ barcode.food <- googlesheets4::read_sheet(sheet.ID.barcodes
   dplyr::mutate(product.name.serial= dplyr::row_number()
                 # Combine product name and their serial numbers. String > n characters put to a new line
                 ,product.name.serial.numb.50= stringr::str_wrap(
-                  paste0(product.name, " #", product.name.serial), width=50)) # class(barcode.food) [1] "grouped_df" "tbl_df" "tbl" "data.frame" # dim(barcode.food) 621 25
+                  paste0(product.name, " #", product.name.serial), width=50)) # class(barcode.food) [1] "grouped_df" "tbl_df" "tbl" "data.frame" # dim(barcode.food) 1697 25
 
 # Calculate unit price
 barcode.food.df <- as.data.frame(barcode.food) |>
