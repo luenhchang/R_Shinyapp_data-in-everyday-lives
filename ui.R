@@ -45,6 +45,7 @@ sidebar <- shinydashboard::dashboardSidebar(
     # Change font size to 30
     ## Reference [shinydashboard: change font size of menuItem in sidebarMenu [duplicate]](https://stackoverflow.com/questions/53559195/shinydashboard-change-font-size-of-menuitem-in-sidebarmenu)
     tags$style(HTML(".sidebar-menu li a { font-size: 20px; }"))
+    ,shinydashboard::menuItem(text = "Summary", tabName = "tabSummary", icon = icon("chart-line"))
     ,shinydashboard::menuItem(text = "Electricity", tabName = "tabElectricity", icon = icon("chart-line"))
     ,shinydashboard::menuItem(text = "About", tabName = "tabAbout",icon = icon("home",lib = "glyphicon"))
     ,shinydashboard::menuItem(text = "Food", tabName = "tabPackagedFood", icon = icon("chart-line"))

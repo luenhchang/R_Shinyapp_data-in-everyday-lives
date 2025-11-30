@@ -154,7 +154,7 @@ googlesheets4::gs4_deauth()
 ## Adding a new column add its column type to col_types=
 barcode.food <- googlesheets4::read_sheet(sheet.ID.barcodes
                                            ,sheet = "food"
-                                           ,col_types = 'TccnDDDc' # T for Datetime, c for character, n for numeric, D for date
+                                           ,col_types = 'TccnDDDcc' # T for Datetime, c for character, n for numeric, D for date
                                            ,na=c("NA"," ")) |>
   dplyr::mutate( timestamp.date=as.Date(timestamp)
                  ,timestamp.month.label= lubridate::month(timestamp.date, label=TRUE, abbr=TRUE)
@@ -190,7 +190,7 @@ barcode.food <- googlesheets4::read_sheet(sheet.ID.barcodes
   dplyr::mutate(product.name.serial= dplyr::row_number()
                 # Combine product name and their serial numbers. String > n characters put to a new line
                 ,product.name.serial.numb.50= stringr::str_wrap(
-                  paste0(product.name, " #", product.name.serial), width=50)) # class(barcode.food) [1] "grouped_df" "tbl_df" "tbl" "data.frame" # dim(barcode.food) 1697 25
+                  paste0(product.name, " #", product.name.serial), width=50)) # class(barcode.food) [1] "grouped_df" "tbl_df" "tbl" "data.frame" # dim(barcode.food) 1789 26
 
 # Calculate unit price
 barcode.food.df <- as.data.frame(barcode.food) |>
@@ -203,7 +203,7 @@ barcode.food.df <- as.data.frame(barcode.food) |>
       !is.na(price)& unit %in% c("g","ml") ~ paste0("$AUD ", unit.price.numb, " per 100", unit)
       ,!is.na(price)& unit %in% c("capsules","tablets","kg","l") ~ paste0("$AUD ", round(unit.price.numb, digits = 2), " per ", unit)
     )
-    ) # class(barcode.food.df) "data.frame" # dim(barcode.food.df) 255 27
+    ) # class(barcode.food.df) "data.frame" # dim(barcode.food.df) 1789 28
 
 # Categorise food product.name
 # [First letter to upper case](https://stackoverflow.com/questions/18509527/first-letter-to-upper-case)
@@ -300,24 +300,24 @@ barcode.food.category <- barcode.food.df |>
       status.consumed.expired %in% c("consumed.after.expiry","unopened.expired","opened.expired") ~ "yes"
       ,status.consumed.expired %in% c("consumed.before.expiry","unopened.unexpired","opened.unexpired") ~ "no"
     ) # Close case_when()
-  ) # Close mutate() # dim(barcode.food.category) 272 32
+  ) # Close mutate() # dim(barcode.food.category) 1789 33
 
 # Count food category
 barcode.food.category.count <- barcode.food.category |>
   dplyr::group_by(category) |>
-  dplyr::summarise(count=dplyr::n()) # dim(barcode.food.category.count) 27 2
+  dplyr::summarise(count=dplyr::n()) # dim(barcode.food.category.count) 32 2
 
 # Foods that are not categorised
 barcode.food.uncategorised <- barcode.food.category |> 
   dplyr::filter(is.na(category)) |> 
   dplyr::select(product.name) |> 
-  dplyr::distinct() # dim(barcode.food.uncategorised) 12 1
+  dplyr::distinct() # dim(barcode.food.uncategorised) 308 1
 
 # Count food expired
 barcode.food.category.expired.count <- barcode.food.category |>
   dplyr::filter(status.consumed.expired != "expiry.date.unavailable") |>
   dplyr::group_by(category, yn.status.expired) |>
-  dplyr::summarise(count=dplyr::n()) # dim(barcode.food.category.expired.count) 34 3
+  dplyr::summarise(count=dplyr::n()) # dim(barcode.food.category.expired.count) 52 3
 
 #-------------------------
 # Process food expiry data
@@ -325,7 +325,7 @@ barcode.food.category.expired.count <- barcode.food.category |>
 food.expiring <- barcode.food.df |> 
   dplyr::ungroup() |>
   # Remove food item that has finished use (i.e., they have date-end-use populated)
-  dplyr::filter(is.na(`date-end-use`)) # dim(food.expiring) 133 24
+  dplyr::filter(is.na(`date-end-use`)) # dim(food.expiring) 484 28
 
 # Food expiring in 180 days
 food.expiring.365 <- food.expiring |> 
@@ -333,7 +333,7 @@ food.expiring.365 <- food.expiring |>
   dplyr::mutate(date.expiry.char=as.character(date.expiry)
                 ,days.to.expiry.char=as.character(days.to.expiry)
   ) |>
-  dplyr::select(product.name.serial.numb.50, date.expiry.char, days.to.expiry) # dim(food.expiring.365) 94 3
+  dplyr::select(product.name.serial.numb.50, date.expiry.char, days.to.expiry) # dim(food.expiring.365) 389 3
 
 # Change column names to carry the names over to column headers
 colnames(food.expiring.365) <- c("Product", "Expiry date","Days to expiry")
@@ -357,7 +357,7 @@ food.consumed <- barcode.food.df |>
                  #,days.usage.char
                  ,days.usage
                  ,date.start.use.char
-                 ,date.end.use.char) # dim(food.consumed) 102 5
+                 ,date.end.use.char) # dim(food.consumed) 1305 5
 
 # Change column names to carry the names over to column headers
 colnames(food.consumed) <- c("Product", "Price", "Used in n days", "Open date", "Finish date")
@@ -375,7 +375,7 @@ food.price <- barcode.food.df |>
   dplyr::select( product.name.serial.numb.50
                  ,price
                  ,unit.price.text
-                 ,timestamp.date.char) # dim(food.price) 193 3
+                 ,timestamp.date.char) # dim(food.price) 1686 4
 
 # Change column names to carry the names over to column headers
 colnames(food.price) <- c("Product", "Price", "Unit Price", "Scan barcode date")
@@ -392,7 +392,7 @@ expenditure.food.category <- barcode.food.category |>
   dplyr::mutate(price.summed=sum(price, na.rm = TRUE)) |>
   dplyr::select(category, category.factor,category.firstup, timestamp.month.num, timestamp.month.label, timestamp.year, price.summed) |>
   dplyr::arrange(category.factor,timestamp.month.num,timestamp.year) |>
-  dplyr::distinct() # dim(expenditure.food.category) 56 7
+  dplyr::distinct() # dim(expenditure.food.category) 311 7
 
 #----------------------------------------------
 # Compute values used in Food valueBox, infoBox
@@ -428,7 +428,7 @@ food.barcode.latest.date.record <- format(
 # Read Google sheet tab= hygiene-products
 barcode.hygiene <- googlesheets4::read_sheet(ss=sheet.ID.barcodes
                                              ,sheet = "hygiene-products"
-                                             ,col_types = "TcccnDDc" # T for Datetime, c for character, n for numeric, D for date 
+                                             ,col_types = "TcccnDDcc" # T for Datetime, c for character, n for numeric, D for date 
                                              ,na=c("NA"," ")
                                              ) |>
   # Filter out unwanted rows. filter(x !="value") not working
@@ -447,7 +447,7 @@ barcode.hygiene <- googlesheets4::read_sheet(ss=sheet.ID.barcodes
   dplyr::mutate(product.name.serial= dplyr::row_number()
                 # Combine product name and their serial numbers. String > n characters put to a new line
                 ,product.name.serial.numb.50= stringr::str_wrap(
-                  paste0(product.name, " #", product.name.serial), width=50)) # class(barcode.hygiene) [1] "grouped_df" "tbl_df" "tbl" "data.frame" # dim(barcode.hygiene) 103 15
+                  paste0(product.name, " #", product.name.serial), width=50)) # class(barcode.hygiene) [1] "grouped_df" "tbl_df" "tbl" "data.frame" # dim(barcode.hygiene) 160 16
 
 barcode.hygiene.df <- as.data.frame(barcode.hygiene) # class(barcode.hygiene.df) [1] "data.frame"
 
@@ -538,7 +538,7 @@ containers <- googlesheets4::read_sheet(sheet.ID.containers) |>
     #                               ,activities=="Collection"~ number.all.types)
     #,numb.PET.stock=ave(number.PET, cumsum(number.PET.reset=="yes"), FUN = cumsum)
     #,numb.all.containers.stock=ave(number.all.types.2, cumsum(number.all.types.2==0), FUN=cumsum)
-    ) # Close mutate() # class(containers) [1] "data.frame" # dim(containers) 462 15
+    ) # Close mutate() # class(containers) [1] "data.frame" # dim(containers) 498 15
 
 # Calculate daily number of containers 
 ## Adding multiple collections to one number per day
@@ -552,7 +552,7 @@ containers.daily.wide <- containers |>
                    # suppress NAs in paste()
                    ,note=paste(ifelse(is.na(Note),"", Note), collapse = "\n")
                    ) |>
-  dplyr::mutate(weeks=as.numeric(difftime(date.of.activity, min(date.of.activity), units = "weeks"))) # dim(containers.daily.wide) 270 9
+  dplyr::mutate(weeks=as.numeric(difftime(date.of.activity, min(date.of.activity), units = "weeks"))) # dim(containers.daily.wide) 304 9
 
 # Daily collection or refund in long format
 containers.daily.long <- tidyr::pivot_longer(
@@ -569,7 +569,7 @@ containers.daily.long <- tidyr::pivot_longer(
     # Set 0 to missing
     ,container.number.label=dplyr::case_when(
       container.number.adjusted==0 ~ NA_integer_
-      ,TRUE ~ container.number.adjusted)) # dim(containers.daily.long) 1350 8
+      ,TRUE ~ container.number.adjusted)) # dim(containers.daily.long) 1520 8
 
 #--------------------------------------
 # Data used to create stacked bar plot

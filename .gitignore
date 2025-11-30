@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+.Rprofile
 rsconnect/
 .httr-oauth
 menuItem-Fitness.html

@@ -20,10 +20,10 @@
 ## 
 ## www: Where all the images and other assets needed for the viewer
 #------------------------------------------------------------------------
-dir.C <- "C:"
-dir.app <- file.path(dir.C,"GoogleDrive_MyDrive","scripts","RProject_Shinyapp_data-in-everyday-lives")
-dir.data <- file.path(dir.app,"data")
-setwd(dir.data)
+# dir.C <- "C:"
+# dir.app <- file.path(dir.C,"GoogleDrive_MyDrive","scripts","RProject_Shinyapp_data-in-everyday-lives")
+# dir.data <- file.path(dir.app,"data")
+# setwd(dir.data)
 
 library(dplyr)
 library(readr)
@@ -39,7 +39,7 @@ googlesheets4::gs4_deauth()
 gsheet_barcodescan_food <- googlesheets4::read_sheet(sheet.ID.barcodes
                                           ,sheet = "food"
                                           ,col_types = 'TccnDDDc' # T for Datetime, c for character, n for numeric, D for date
-                                          ,na=c("NA"," ")) # dim(gsheet_barcodescan_food) 1697 8 
+                                          ,na=c("NA"," ")) # dim(gsheet_barcodescan_food) 1697 8
 
 # Step 1: Define stable content-based unique ID
 df_new <- gsheet_barcodescan_food |>
@@ -56,7 +56,7 @@ df_new <- gsheet_barcodescan_food |>
 
 # Step 2 — Backup existing TSV
 # Define output TSV path
-tsv_path <- "barcode-scan_food.tsv"
+tsv_path <- "data/barcode-scan_food.tsv"
 
 if (file.exists(tsv_path)) {
   backup_path <- paste0(tools::file_path_sans_ext(tsv_path)
