@@ -230,4 +230,13 @@ cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
 git add .
 git commit -m "Created export-gsheet-data.R"
 git push origin main
+```
+
+## 2025-11-30
+```bash
+cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
+git add .
+git commit -m "global.R, server.R, ui.R updated"
+git push origin main
+```
 

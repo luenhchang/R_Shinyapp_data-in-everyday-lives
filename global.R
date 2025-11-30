@@ -139,6 +139,27 @@ dir.app <- file.path(dir.C,"GoogleDrive_MyDrive","scripts","RProject_Shinyapp_da
 #setwd(dir.app)
 source("functions.R")
 
+#---------------------------------------------------------
+# Read data from water-tank-usage-events_responses.gsheet
+## Change general access to Any one with the link can view
+#---------------------------------------------------------
+sheet.ID.water.tank.usage <- "https://docs.google.com/spreadsheets/d/1xZvI2qgM7I0SvaUBKCqLdRi4VxYuli5DVaTuZ5r7dNg/"
+googlesheets4::gs4_deauth()
+
+water.tank.usage <- googlesheets4::read_sheet(ss=sheet.ID.water.tank.usage
+                                              ,sheet = "Form Responses 1"
+                                              ,col_types = 'TDccnnnc'
+                                              ,na=c("NA"," ")
+                                              ) %>%
+  dplyr::rowwise() %>%
+  dplyr::mutate(
+    water_tank_usage_litre= sum( number_3_litre_milk_bottles*3
+                                 ,number_9_litre_buckets*9
+                                 ,number_9_litre_watering_cans*9
+                                 ,na.rm =  TRUE)
+    ) %>% 
+  dplyr::ungroup() # dim(water.tank.usage) 81 9
+
 #*****************************************
 # Read data to use under menuItem "Food" 
 ## Input file: barcode-scan.gsheet
@@ -190,7 +211,8 @@ barcode.food <- googlesheets4::read_sheet(sheet.ID.barcodes
   dplyr::mutate(product.name.serial= dplyr::row_number()
                 # Combine product name and their serial numbers. String > n characters put to a new line
                 ,product.name.serial.numb.50= stringr::str_wrap(
-                  paste0(product.name, " #", product.name.serial), width=50)) # class(barcode.food) [1] "grouped_df" "tbl_df" "tbl" "data.frame" # dim(barcode.food) 1789 26
+                  paste0(product.name, " #", product.name.serial), width=50)) %>%
+  dplyr::ungroup() # class(barcode.food) [1] "grouped_df" "tbl_df" "tbl" "data.frame" # dim(barcode.food) 1797 26
 
 # Calculate unit price
 barcode.food.df <- as.data.frame(barcode.food) |>
@@ -954,6 +976,103 @@ most_recent_Rate_Incl_GST_Standard_Solar <- paste0(tail(alinta_bills_rates_over_
 most_recent_Rate_Incl_GST_Peak <- paste0("$",tail(alinta_bills_rates_over_supply_period, n=1)[1,11] + 
                                              tail(alinta_bills_rates_over_supply_period, n=1)[1,13]
                                          ,"/KWh")
+
+#---------------------------------------
+# Create data for this month's highlight 
+#---------------------------------------
+# Get the current date
+current_date <- Sys.Date()
+
+# Calculate the start of this month
+start_of_this_month <- as.Date(format(current_date, "%Y-%m-01")) # [1] "2025-11-01"
+
+# Calculate the start of last month
+start_of_last_month <- as.Date(format(start_of_this_month - 1, "%Y-%m-01")) # [1] "2025-10-01"
+
+# Summarise this month's data
+this_month_stats <- cbind(
+# Monthly total of food expense
+  barcode.food %>%
+    dplyr::filter(timestamp >= start_of_this_month) %>%
+    dplyr::summarise(total_food_price = sum(price, na.rm = TRUE))
+# Monthly total of water tank usage
+  ,water.tank.usage %>%
+    dplyr::filter(timestamp >= start_of_this_month) %>%
+    dplyr::summarise(total_water_tank_usage_litre = sum(water_tank_usage_litre, na.rm = TRUE))
+  ) %>%
+  replace(is.na(.), 0)
+
+
+# Reshape data to long format
+this_month_stats_long <- this_month_stats %>% 
+  tidyr::pivot_longer(
+    cols = c(total_food_price, total_water_tank_usage_litre)
+    ,names_to = "metric"
+    ,values_to = "value") %>%
+  dplyr::mutate(month= "this")
+
+# Summarise last month's data
+last_month_stats <- cbind(
+# Monthly total of food expense
+  barcode.food %>%
+    dplyr::filter(timestamp >= start_of_last_month & timestamp < start_of_this_month) %>%
+    dplyr::summarise(total_food_price = sum(price, na.rm = TRUE))
+  
+# Monthly total of Water usage in litre
+  ,water.tank.usage %>%
+    dplyr::filter(timestamp >= start_of_last_month & timestamp < start_of_this_month) %>%
+    dplyr::summarise(total_water_tank_usage_litre = sum(water_tank_usage_litre, na.rm = TRUE))
+) %>%
+  replace(is.na(.), 0)
+
+# Reshape data to long format
+last_month_stats_long <- last_month_stats %>% 
+  tidyr::pivot_longer(
+    cols = c(total_food_price, total_water_tank_usage_litre)
+    ,names_to = "metric"
+    ,values_to = "value") %>%
+  dplyr::mutate(month= "last")
+
+# Merge this month long and last month long
+month_stats <- merge( x= this_month_stats_long
+                     ,y= last_month_stats_long
+                     ,by= "metric"
+                     ,suffixes = c("_this","_last")) %>%
+  # Calculate changes between this and last month
+  dplyr::mutate(
+    # Display this month's formatted values
+    value_this_formatted= case_when(
+       metric== "total_food_price" ~ paste0("$AUD ",round(value_this, digits = 2))
+      ,metric == "total_water_tank_usage_litre" ~ paste0( format(round(value_this, 1)
+                                                                 ,big.mark = ","
+                                                                 , trim = TRUE)
+                                                          ," L")
+    )
+    # Calculate numeric changes
+    ,change = round(value_this - value_last, digits = 2)
+    
+    # Create character changes to use in valueBoxes
+    ,change_formatted = case_when(
+       metric =="total_food_price" ~ as.character(abs(value_this - value_last))
+      ,metric == "total_water_tank_usage_litre" ~ paste0(abs(change), " L")
+    )
+    # argument expression to use in valueBox subtitle
+    ,subtitle= case_when(
+      metric %in% c("total_food_price", "total_water_tank_usage_litre") ~ 
+        paste0(
+          ifelse( change > 0
+                  ,"<span style='color:green;'>&#9650;</span>"  # ▲ Upward triangle in green
+                  , ifelse( change < 0
+                            ,"<span style='color:red;'>&#9660;</span>"   # ▼ Downward triangle in red
+                            , "<span style='color:gray;'>—</span>"         # Neutral dash in gray
+                            )
+                  )
+        , " "
+        , change_formatted)
+      ,TRUE ~ "<span style='color:gray;'>—</span>"  # Default case for other metrics
+    )
+  ) # Close mutate()
+
 #---------------------------
 # Check shinyapps.io account
 #---------------------------

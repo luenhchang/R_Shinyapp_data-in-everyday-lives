@@ -29,6 +29,46 @@ server <- function(input, output, session) {
   ## This is a bad idea! If multiple users are connected to the app, then one user (or browser tab) exiting will cause everyone to be kicked off! – Joe Cheng Aug 7, 2020 at 19:23
   session$onSessionEnded(function() { stopApp() })
   
+  #*****************************************
+  # Outputs to use under menuItem "Summary"
+  #*****************************************
+  # Monthly expenditure on food this month
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.this.month.highlight.total.spent.on.food"
+                          ,argument.value = HTML(
+                            paste0(
+                              "Spent on food <br>"
+                              ,month_stats %>% dplyr::filter(metric=="total_food_price") %>% dplyr::pull(value_this_formatted)
+                            ) # Close paste0()
+                          ) # Close HTML()
+                          ,argument.subtitle = HTML(
+                            paste0(
+                              month_stats %>% dplyr::filter(metric=="total_food_price") %>% dplyr::pull(subtitle)
+                              ) # Close paste0()
+                            ) # Close HTML()
+                          ,argument.icon=icon("running")
+                          ,argument.color="black" # Color argument still required but overridden with CSS
+                          ) # Close function.renderValueBox()
+  
+  # Monthly water tank usage litre
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.this.month.highlight.total.water.tank.usage"
+                          ,argument.value = HTML(
+                            paste0(
+                              "Water tank usage <br>"
+                              ,month_stats %>% dplyr::filter(metric=="total_water_tank_usage_litre") %>% dplyr::pull(value_this_formatted)
+                            ) # Close paste0()
+                          ) # Close HTML()
+                          ,argument.subtitle = HTML(
+                            paste0(
+                              month_stats %>% dplyr::filter(metric=="total_water_tank_usage_litre") %>% dplyr::pull(subtitle)
+                            ) # Close paste0()
+                          ) # Close HTML()
+                          ,argument.icon=icon("running")
+                          ,argument.color="black" # Color argument still required but overridden with CSS
+  ) # Close function.renderValueBox()
+  
+  
 
   #*****************************************
   # Outputs to use under menuItem "About"

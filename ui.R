@@ -63,10 +63,26 @@ style.header <- "text-align: left; padding-bottom: 10px;
 
 body <- shinydashboard::dashboardBody(
   shinydashboard::tabItems(
+      #************************************
+      # menuItem "Summary"
+      #************************************
+      shinydashboard::tabItem(
+        tabName = "tabSummary"
+        ,fluidRow(
+          # Add a title row left-aligned
+          column(
+            width = 12,
+            tags$h1("This Month's Highlights", style = style.header)
+            )
+          ,shinydashboard::valueBoxOutput(outputId = "valueBox.this.month.highlight.total.spent.on.food", width = 3)
+          ,shinydashboard::valueBoxOutput(outputId = "valueBox.this.month.highlight.total.water.tank.usage", width = 3)
+        ) # Close fluidRow()
+      ) # End tabItem()
+      
     #************************************
     # menuItem "Electricity"
     #************************************
-    shinydashboard::tabItem(
+    ,shinydashboard::tabItem(
       tabName = "tabElectricity"
       ,fluidRow(
         shinydashboard::valueBoxOutput(outputId = "valueBox.Alinta.most.recent.rates.charges", width = 4)
