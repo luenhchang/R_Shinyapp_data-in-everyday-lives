@@ -328,6 +328,100 @@ server <- function(input, output, session) {
   #-----------------------
   
   #----------------
+  # 2026 valueBoxes
+  # Valid colors are: red, yellow, aqua, blue, light-blue, green, navy, teal, olive, lime, orange, fuchsia, purple, maroon, black.
+  ## [How to break line inside a paste0() function in shiny dashboard](https://stackoverflow.com/questions/51079153/how-to-break-line-inside-a-paste0-function-in-shiny-dashboard)
+  #----------------
+  function.renderValueBox(shiny_output = output
+                          ,output.id="valueBox.year.in.container.collection.2026"
+                          ,argument.value=unique(lubridate::year(containers.2026$date.of.activity))
+                          ,argument.subtitle="Year in collection")
+  
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.numb.collections.made.2026"
+                          ,argument.value = totals.2026$number.activities[1]
+                          ,argument.subtitle = "Collections made")
+  
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.numb.containers.collected.2026"
+                          ,argument.value = function.comma.to.thousands(totals.2026$total[1])
+                          ,argument.subtitle = HTML(
+                            paste0("Containers collected, including",br()
+                                   ,"<b>", numb.PET.collected.2026," plastic bottles","</b>", br()
+                                   ,"<b>", numb.cans.collected.2026," cans","</b>", br()
+                                   ,"<b>", numb.glass.collected.2026, " glass bottles","</b>", br()
+                                   ,"<b>", numb.carton.collected.2026, " carton","</b>")
+                          ) # Close HTML()
+                          )
+
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.numb.refunds.received.2026"
+                          ,argument.value = totals.2026$number.activities[2] 
+                          ,argument.subtitle = "Refunds received")
+  
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.numb.containers.refunded.2026"
+                          ,argument.value = function.comma.to.thousands(totals.2026$total[2]) #numb.all.containers.refunded
+                          ,argument.subtitle = HTML(
+                            paste0("Containers refunded, including", br()
+                                   ,"<b>", numb.PET.refunded.2026," plastic bottles","</b>", br()
+                                   ,"<b>", numb.cans.refunded.2026," cans","</b>", br()
+                                   ,"<b>", numb.glass.refunded.2026, " glass bottles","</b>", br()
+                                   ,"<b>", numb.carton.refunded.2026, " carton","</b>")
+                          ) # Close HTML()
+  )
+  
+  #-----------------------------------
+  # 2026 stacked bar plot using plotly
+  #-----------------------------------
+  output$plot.stacked.bars.containers.2026 <- plotly::renderPlotly({
+    #--------------------------------------------------
+    # Create stacked bar plot using plotly without add_trace
+    #--------------------------------------------------
+    
+    # Colors for different container types
+    colors <- as.vector(pals::glasbey(n = 11))[c(8, 2, 9, 11)]
+    
+    # Prepare data for plotly
+    data <- containers.daily.long.not.all.types.2026 %>%
+      dplyr::mutate(container.type = factor(container.type
+                                            ,levels = c("PET", "cans", "glass", "carton")))
+    
+    # Create the stacked bar plot
+    plot <- plotly::plot_ly(
+      data = data
+      ,x = ~date.of.activity
+      ,y = ~container.number.adjusted
+      ,color = ~container.type
+      ,colors = colors
+      ,type = "bar") %>%
+      plotly::layout(
+        barmode = "stack"
+        ,xaxis = list(
+          title = ""
+          ,tickformat = "%b-%Y"
+          ,dtick = "M1")
+        ,yaxis = list(
+          title = "Number of containers"
+          ,tickvals = seq(-300, 300, 50)
+        )
+        ,legend = list(
+          title = list(text = "Container type")
+          ,orientation = "h"
+          ,x = 0
+          ,y = 1.1)
+      ) %>%
+      plotly::add_annotations(  x = containers.daily.stacked.bar.label.data.2026$date.of.activity
+                                ,y = containers.daily.stacked.bar.label.data.2026$text_label_y_position
+                                ,text = containers.daily.stacked.bar.label.data.2026$text_label
+                                ,xref = "x"
+                                ,yref = "y"
+                                ,showarrow = FALSE)
+    
+    plot
+  })
+  
+  #----------------
   # 2025 valueBoxes
   # Valid colors are: red, yellow, aqua, blue, light-blue, green, navy, teal, olive, lime, orange, fuchsia, purple, maroon, black.
   ## [How to break line inside a paste0() function in shiny dashboard](https://stackoverflow.com/questions/51079153/how-to-break-line-inside-a-paste0-function-in-shiny-dashboard)

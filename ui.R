@@ -230,72 +230,102 @@ body <- shinydashboard::dashboardBody(
              ) # Close box
         ) # Close fluidRow
     ) # Close tabItem() for menuItem "Bathroom"
-    
     #*****************************************
     # menuItem "Recycling"
     #*****************************************
     ,shinydashboard::tabItem(
       tabName = "tabContainers"
-    # Year to date (current)
+      
+      # Year to date (current)
       ,fluidRow(
         shinydashboard::valueBoxOutput(outputId = "valueBox.numb.all.containers.stock", width = 3)
       ) # Close fluidRow
-    # 2025
+      
+      #-----------------------------------
+      # Current year - 2026
+      #-----------------------------------
       ,fluidRow(
         # Add a title row left-aligned
         column(
           width = 12,
           tags$h1("This Year's Container Recycling", style = style.header)
         )
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.year.in.container.collection.2026", width = 2)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.collections.made.2026", width = 2)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.collected.2026", width = 3)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.refunds.received.2026", width = 2)
+        ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.refunded.2026", width = 3)
+      ) # Close fluidRow
+      
+      ,fluidRow(
+        box(title="Container collection and refund in 2026"
+            ,status="primary"
+            ,solidHeader=TRUE
+            ,width = 12
+            ,height = 455
+            ,plotlyOutput(outputId="plot.stacked.bars.containers.2026"))
+      ) # Close fluidRow
+      
+      #-----------------------------------
+      # Past years- 2025, 2024
+      #-----------------------------------
+      ,fluidRow(
+        # Add a title row left-aligned
+        column(
+          width = 12,
+          tags$h1("Past Years' Container Recycling", style = style.header)
+        )
+        
+        # 2025
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.year.in.container.collection.2025", width = 2)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.collections.made.2025", width = 2)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.collected.2025", width = 3)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.refunds.received.2025", width = 2)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.refunded.2025", width = 3)
       ) # Close fluidRow
+      
       ,fluidRow(
         box(title="Container collection and refund in 2025"
             ,status="primary"
             ,solidHeader=TRUE
-            ,width = 12 # By default box is set to width = 6. full width = 12
-            ,height = 455 # Plot can go outside box border if height too small # White space if height too big
+            ,width = 12
+            ,height = 455
             ,plotlyOutput(outputId="plot.stacked.bars.containers.2025"))
       ) # Close fluidRow
-    # 2024
+      
+      # 2024
       ,fluidRow(
-        # Add a title row left-aligned
-        column(
-          width = 12,
-          tags$h1("Pass Years' Container Recycling", style = style.header)
-        )
-        ,shinydashboard::valueBoxOutput(outputId = "valueBox.year.in.container.collection.2024", width = 2)
+         shinydashboard::valueBoxOutput(outputId = "valueBox.year.in.container.collection.2024", width = 2)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.collections.made.2024", width = 2)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.collected.2024", width = 3)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.refunds.received.2024", width = 2)
         ,shinydashboard::valueBoxOutput(outputId = "valueBox.numb.containers.refunded.2024", width = 3)
-    ) # Close fluidRow
-    
+      ) # Close fluidRow
+      
       ,fluidRow(
         box(title="Container collection and refund in 2024"
             ,status="primary"
             ,solidHeader=TRUE
-            ,width = 12 # By default box is set to width = 6. full width = 12
-            ,height = 455 # Plot can go outside box border if height too small # White space if height too big
+            ,width = 12
+            ,height = 455
             ,plotOutput(outputId="plot.stacked.bars.containers.2024"))
-        ) # Close fluidRow
+      ) # Close fluidRow
+      
       ,fluidRow(
         box(title = "Number of containers collected or refunded per day"
             ,status = "primary"
             ,solidHeader = TRUE
             ,width = 12
             ,DTOutput(outputId="table.containers.daily.DT")
-            )
+        )
       ) # Close fluidRow
+      
       ,fluidRow(
-         shinydashboard::infoBoxOutput(outputId = "infoBox.date.earliest.record.recycling",width = 3)
+        shinydashboard::infoBoxOutput(outputId = "infoBox.date.earliest.record.recycling",width = 3)
         ,shinydashboard::infoBoxOutput(outputId ="infoBox.date.latest.record.recycling" ,width = 3)
       )
     ) # Close tabItem() for menuItem "Recycling"
+    
     #************************************
     # menuItem "Employment"
     #************************************

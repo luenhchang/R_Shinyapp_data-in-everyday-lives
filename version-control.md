@@ -240,3 +240,12 @@ git commit -m "global.R, server.R, ui.R updated"
 git push origin main
 ```
 
+## 2026-01-31
+```bash
+cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
+git add .
+git commit -m "Updated global.R, server.R, ui.R adding 2026 container recycling"
+git push origin main
+```
+
+

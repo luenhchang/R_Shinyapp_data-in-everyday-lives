@@ -158,7 +158,7 @@ water.tank.usage <- googlesheets4::read_sheet(ss=sheet.ID.water.tank.usage
                                  ,number_9_litre_watering_cans*9
                                  ,na.rm =  TRUE)
     ) %>% 
-  dplyr::ungroup() # dim(water.tank.usage) 81 9
+  dplyr::ungroup() # dim(water.tank.usage) 120 9
 
 #*****************************************
 # Read data to use under menuItem "Food" 
@@ -172,47 +172,70 @@ sheet.ID.barcodes <- "https://docs.google.com/spreadsheets/d/1hnIOmXw6s56lX-J7IE
 googlesheets4::gs4_deauth()
 
 # Read Google sheet tab=food
-## Adding a new column add its column type to col_types=
+# Read Google sheet tab = food
 barcode.food <- googlesheets4::read_sheet(sheet.ID.barcodes
-                                           ,sheet = "food"
-                                           ,col_types = 'TccnDDDcc' # T for Datetime, c for character, n for numeric, D for date
-                                           ,na=c("NA"," ")) |>
-  dplyr::mutate( timestamp.date=as.Date(timestamp)
-                 ,timestamp.month.label= lubridate::month(timestamp.date, label=TRUE, abbr=TRUE)
-                 ,timestamp.month.num=cut.Date(timestamp.date, breaks = "1 month", labels = FALSE)
-                 ,timestamp.year=lubridate::year(timestamp.date)
-                 ,product.name=`product-name`
-                 # Extract the last part of a string by final space
-                 ## e.g. 250g from MasterFoods Dijonnaise Mustard sauce 250g 
-                 ## Reference [Split string by final space in R](https://stackoverflow.com/questions/19959697/split-string-by-final-space-in-r)
-                 ,quantity=do.call(rbind, strsplit(product.name, ' (?=[^ ]+$)', perl = TRUE))[,2]
-                 # Extract a pattern from a a string. Pattern 1: decimal number and number without decimal. Pattern 2: letters. Invert the search of pattern 2 will get pattern 1
-                 ## Ref [extract letters from character string [duplicate]](https://stackoverflow.com/questions/77190404/extract-letters-from-character-string)
-                 ,measurement=as.numeric(gsub(pattern="[[:alpha:]]", replacement="", x=quantity))
-                 # Extract pattern 2 letters from a string 
-                 ,unit=tolower(gsub(pattern="[^[:alpha:]]", replacement="", x=quantity))
-                 ,date.expiry=lubridate::ymd(`date-expiry`)
-                 ,date.start.use=`date-start-use`
-                 ,date.end.use=(`date-end-use`)
-                 ,days.usage=as.numeric(
-                   difftime(time1=date.end.use, time2=date.start.use, units = "days")
-                 )
-                 # Add date of today
-                 ,today=Sys.Date()
-                 # Date difference between today and expiry
-                 ,days.to.expiry=as.numeric(
-                   difftime(time1=date.expiry, time2=today, units = "days")
-                 )
-                 # Arbitrary base date 0 for plotting date difference as an interval
-                 ,dummy.xmin=0) |>
+                                          ,sheet = "food"
+                                          ,col_types = "TccnDDDcc"  # T datetime, c character, n numeric, D date
+                                          ,na = c("NA", " ")) |>
+  # ---- Normalise Google Sheets blanks ----
+dplyr::mutate(
+  across(where(is.character), stringr::str_trim)
+  ,across(where(is.character), ~ dplyr::na_if(.x, ""))
+  ,timestamp.date = as.Date(timestamp)
+  ,timestamp.month.label = lubridate::month(timestamp.date, label = TRUE, abbr = TRUE)
+  ,timestamp.month.num = cut.Date(timestamp.date, breaks = "1 month", labels = FALSE)
+  ,timestamp.year = lubridate::year(timestamp.date)
+  ,product.name = `product-name`) |>
+  # ---- Drop UUID-only / empty rows ----
+dplyr::filter(!is.na(product.name)) |>
+  # ---- Extract quantity safely (no rbind / strsplit) ----
+dplyr::mutate(
+  # Extract trailing quantity like "250g", "1 L", "0.5kg"
+  quantity = stringr::str_extract(string = product.name, pattern = "(?<=\\s)\\d*\\.?\\d+\\s*[[:alpha:]]+$"),
+    # Numeric part
+  measurement = as.numeric(gsub("[[:alpha:]]", "", quantity)),
+  # Unit part
+  unit = tolower(gsub("[^[:alpha:]]", "", quantity)),
+  
+  date.expiry = lubridate::ymd(`date-expiry`),
+  date.start.use = `date-start-use`,
+  date.end.use = `date-end-use`,
+  
+  days.usage = as.numeric(
+    difftime(date.end.use, date.start.use, units = "days")
+  ),
+  
+  today = Sys.Date(),
+  
+  days.to.expiry = as.numeric(
+    difftime(date.expiry, today, units = "days")
+  ),
+  
+  # Arbitrary base date for plotting
+  dummy.xmin = 0
+) |>
   dplyr::arrange(date.expiry, barcode, product.name) |>
-  # Create serial number within same product-name
   dplyr::group_by(barcode) |>
-  dplyr::mutate(product.name.serial= dplyr::row_number()
-                # Combine product name and their serial numbers. String > n characters put to a new line
-                ,product.name.serial.numb.50= stringr::str_wrap(
-                  paste0(product.name, " #", product.name.serial), width=50)) %>%
-  dplyr::ungroup() # class(barcode.food) [1] "grouped_df" "tbl_df" "tbl" "data.frame" # dim(barcode.food) 1797 26
+  dplyr::mutate(
+    product.name.serial = dplyr::row_number(),
+    product.name.serial.numb.50 = stringr::str_wrap(
+      paste0(product.name, " #", product.name.serial),
+      width = 50
+    )
+  ) |>
+  dplyr::ungroup()
+
+#-----------------------------------------------------------------------------------------------------
+# Identify rows with problematic product.name that doesn't have a space between item name and quantity
+## e.g., 義香珍黑糖桃酥300g
+#-----------------------------------------------------------------------------------------------------
+barcode.food |>
+  dplyr::filter(
+    is.na(product.name) |
+      !stringr::str_detect(product.name, "\\s")
+  ) |>
+  dplyr::select(product.name)
+
 
 # Calculate unit price
 barcode.food.df <- as.data.frame(barcode.food) |>
@@ -322,7 +345,7 @@ barcode.food.category <- barcode.food.df |>
       status.consumed.expired %in% c("consumed.after.expiry","unopened.expired","opened.expired") ~ "yes"
       ,status.consumed.expired %in% c("consumed.before.expiry","unopened.unexpired","opened.unexpired") ~ "no"
     ) # Close case_when()
-  ) # Close mutate() # dim(barcode.food.category) 1789 33
+  ) # Close mutate() # dim(barcode.food.category) 1863 33
 
 # Count food category
 barcode.food.category.count <- barcode.food.category |>
@@ -339,7 +362,7 @@ barcode.food.uncategorised <- barcode.food.category |>
 barcode.food.category.expired.count <- barcode.food.category |>
   dplyr::filter(status.consumed.expired != "expiry.date.unavailable") |>
   dplyr::group_by(category, yn.status.expired) |>
-  dplyr::summarise(count=dplyr::n()) # dim(barcode.food.category.expired.count) 52 3
+  dplyr::summarise(count=dplyr::n()) # dim(barcode.food.category.expired.count) 53 3
 
 #-------------------------
 # Process food expiry data
@@ -414,7 +437,7 @@ expenditure.food.category <- barcode.food.category |>
   dplyr::mutate(price.summed=sum(price, na.rm = TRUE)) |>
   dplyr::select(category, category.factor,category.firstup, timestamp.month.num, timestamp.month.label, timestamp.year, price.summed) |>
   dplyr::arrange(category.factor,timestamp.month.num,timestamp.year) |>
-  dplyr::distinct() # dim(expenditure.food.category) 311 7
+  dplyr::distinct() # dim(expenditure.food.category) 323 7
 
 #----------------------------------------------
 # Compute values used in Food valueBox, infoBox
@@ -560,7 +583,7 @@ containers <- googlesheets4::read_sheet(sheet.ID.containers) |>
     #                               ,activities=="Collection"~ number.all.types)
     #,numb.PET.stock=ave(number.PET, cumsum(number.PET.reset=="yes"), FUN = cumsum)
     #,numb.all.containers.stock=ave(number.all.types.2, cumsum(number.all.types.2==0), FUN=cumsum)
-    ) # Close mutate() # class(containers) [1] "data.frame" # dim(containers) 498 15
+    ) # Close mutate() # class(containers) [1] "data.frame" # dim(containers) 500 15
 
 # Calculate daily number of containers 
 ## Adding multiple collections to one number per day
@@ -574,7 +597,7 @@ containers.daily.wide <- containers |>
                    # suppress NAs in paste()
                    ,note=paste(ifelse(is.na(Note),"", Note), collapse = "\n")
                    ) |>
-  dplyr::mutate(weeks=as.numeric(difftime(date.of.activity, min(date.of.activity), units = "weeks"))) # dim(containers.daily.wide) 304 9
+  dplyr::mutate(weeks=as.numeric(difftime(date.of.activity, min(date.of.activity), units = "weeks"))) # dim(containers.daily.wide) 306 9
 
 # Daily collection or refund in long format
 containers.daily.long <- tidyr::pivot_longer(
@@ -591,7 +614,7 @@ containers.daily.long <- tidyr::pivot_longer(
     # Set 0 to missing
     ,container.number.label=dplyr::case_when(
       container.number.adjusted==0 ~ NA_integer_
-      ,TRUE ~ container.number.adjusted)) # dim(containers.daily.long) 1520 8
+      ,TRUE ~ container.number.adjusted)) # dim(containers.daily.long) 1530 8
 
 #--------------------------------------
 # Data used to create stacked bar plot
@@ -639,7 +662,7 @@ containers.daily.stacked.bar.label.data <- number.containers.daily %>%
   ) %>%
   dplyr::ungroup() %>%
   dplyr::distinct() %>%
-  dplyr::mutate(text_label_y_position = stacked.bar.label.height$max_height) # dim(containers.daily.stacked.bar.label.data) 257 3
+  dplyr::mutate(text_label_y_position = stacked.bar.label.height$max_height) # dim(containers.daily.stacked.bar.label.data) 292 3
 
 #-------------------------------------------------------
 # Calculate total containers per day regardless of types
@@ -652,11 +675,53 @@ totals.all.types <- containers.daily.long.not.all.types |>
   dplyr::mutate(
     # Set total >=10 or <0 to be printed, total of 0 to 9 to be missing
     total.label=dplyr::case_when(total %in% c(0:9) ~ NA_integer_
-                                 ,TRUE ~ total)) # dim(totals.all.types) 270 4
+                                 ,TRUE ~ total)) # dim(totals.all.types) 306 4
 
 #-----------------------------------------------------
 # Create subsets by years
 #-----------------------------------------------------
+
+#-----
+# 2026
+#-----
+containers.2026 <- containers %>% 
+  dplyr::filter(dplyr::between(x = date.of.activity
+                               ,left  = as.Date("2026-01-01")
+                               ,right = as.Date("2026-12-31"))) # dim(containers.2026) 1 15
+
+## Data used in Recycling stacked bar plots
+containers.daily.long.not.all.types.2026 <- containers.daily.long.not.all.types %>% 
+  dplyr::filter(dplyr::between(x = date.of.activity
+                               ,left  = as.Date("2026-01-01")
+                               ,right = as.Date("2026-12-31"))) # dim(containers.daily.long.not.all.types.2026) 4 8
+
+# Label text data in Recycling stacked bar plots
+containers.daily.stacked.bar.label.data.2026 <- containers.daily.stacked.bar.label.data %>% 
+  dplyr::filter(dplyr::between(x = date.of.activity
+                               ,left  = as.Date("2026-01-01")
+                               ,right = as.Date("2026-12-31"))) # dim(containers.daily.stacked.bar.label.data.2026) 1 3
+
+totals.all.types.2026 <- totals.all.types %>% 
+  dplyr::filter(dplyr::between(x = date.of.activity
+                               ,left  = as.Date("2026-01-01")
+                               ,right = as.Date("2026-12-31"))) # dim(totals.all.types.2026) 1 4
+
+# Calculate total number of collected or refunded containers
+totals.2026 <- containers %>% 
+  dplyr::filter(dplyr::between(x = date.of.activity
+                               ,left  = as.Date("2026-01-01")
+                               ,right = as.Date("2026-12-31"))) %>% 
+  dplyr::group_by(activities) %>%
+  dplyr::summarise(total.PET = sum(number.PET, na.rm = TRUE)
+                   ,total.cans = sum(number.cans, na.rm = TRUE)
+                   ,total.glass = sum(number.glass, na.rm = TRUE)
+                   ,total.carton = sum(number.carton, na.rm = TRUE)
+                   ,number.activities = dplyr::n()
+                   ,.groups = "drop") %>%
+  # Total containers collected or refunded
+  dplyr::rowwise() %>%
+  dplyr::mutate(total = sum(dplyr::c_across(tidyselect::starts_with("total."))
+                            ,na.rm = TRUE)) # dim(totals.2026) 1 7
 
 #-----
 # 2025
@@ -664,24 +729,24 @@ totals.all.types <- containers.daily.long.not.all.types |>
 containers.2025 <- containers %>% 
   dplyr::filter(dplyr::between(x=date.of.activity
                                ,left= as.Date("2025-01-01")
-                               ,right=as.Date("2025-12-31"))) # dim(containers.2025) 8 15
+                               ,right=as.Date("2025-12-31"))) # dim(containers.2025) 46 15
 
 ## Data used in Recycling stacked bar plots
 containers.daily.long.not.all.types.2025 <- containers.daily.long.not.all.types %>% 
   dplyr::filter(dplyr::between(x=date.of.activity
                                ,left= as.Date("2025-01-01")
-                               ,right=as.Date("2025-12-31"))) # dim(containers.daily.long.not.all.types.2025) 28 8
+                               ,right=as.Date("2025-12-31"))) # dim(containers.daily.long.not.all.types.2025) 172 8
 
 # Label text data in Recycling stacked bar plots
 containers.daily.stacked.bar.label.data.2025 <- containers.daily.stacked.bar.label.data %>% 
   dplyr::filter(dplyr::between(x=date.of.activity
                                ,left= as.Date("2025-01-01")
-                               ,right=as.Date("2025-12-31"))) # dim(containers.daily.stacked.bar.label.data.2025) 6 3
+                               ,right=as.Date("2025-12-31"))) # dim(containers.daily.stacked.bar.label.data.2025) 41 3
 
 totals.all.types.2025 <- totals.all.types %>% 
   dplyr::filter(dplyr::between(x=date.of.activity
                                ,left= as.Date("2025-01-01")
-                               ,right=as.Date("2025-12-31"))) # dim(totals.all.types.2025) 7 4
+                               ,right=as.Date("2025-12-31"))) # dim(totals.all.types.2025) 43 4
 
 # Calculate total number of collected or refunded containers
 totals.2025 <- containers %>% 
@@ -744,30 +809,44 @@ numb.carton.stock <- tail(containers$numb.carton.stock, n=1)
 
 numb.all.containers.stock <- tail(containers$numb.all.containers.stock,n=1)
 
-# 2025, 2024
-numb.PET.collected.2025 <- function.comma.to.thousands(totals.2025$total.PET[1])
-numb.PET.collected.2024 <- function.comma.to.thousands(totals.2024$total.PET[1])
+#-----------------------------------
+# Current year - 2026
+#-----------------------------------
+numb.PET.collected.2026    <- function.comma.to.thousands(totals.2026$total.PET[1])
+numb.cans.collected.2026   <- function.comma.to.thousands(totals.2026$total.cans[1])
+numb.glass.collected.2026  <- function.comma.to.thousands(totals.2026$total.glass[1])
+numb.carton.collected.2026 <- function.comma.to.thousands(totals.2026$total.carton[1])
 
-numb.cans.collected.2025 <- function.comma.to.thousands(totals.2025$total.cans[1])
-numb.cans.collected.2024 <- function.comma.to.thousands(totals.2024$total.cans[1])
+numb.PET.refunded.2026     <- function.comma.to.thousands(totals.2026$total.PET[2])
+numb.cans.refunded.2026    <- function.comma.to.thousands(totals.2026$total.cans[2])
+numb.glass.refunded.2026   <- function.comma.to.thousands(totals.2026$total.glass[2])
+numb.carton.refunded.2026  <- function.comma.to.thousands(totals.2026$total.carton[2])
 
-numb.glass.collected.2025 <- function.comma.to.thousands(totals.2025$total.glass[1])
-numb.glass.collected.2024 <- function.comma.to.thousands(totals.2024$total.glass[1])
-
+#-----------------------------------
+# Past year 2025
+#-----------------------------------
+numb.PET.collected.2025    <- function.comma.to.thousands(totals.2025$total.PET[1])
+numb.cans.collected.2025   <- function.comma.to.thousands(totals.2025$total.cans[1])
+numb.glass.collected.2025  <- function.comma.to.thousands(totals.2025$total.glass[1])
 numb.carton.collected.2025 <- function.comma.to.thousands(totals.2025$total.carton[1])
+
+numb.PET.refunded.2025     <- function.comma.to.thousands(totals.2025$total.PET[2])
+numb.cans.refunded.2025    <- function.comma.to.thousands(totals.2025$total.cans[2])
+numb.glass.refunded.2025   <- function.comma.to.thousands(totals.2025$total.glass[2])
+numb.carton.refunded.2025  <- function.comma.to.thousands(totals.2025$total.carton[2])
+
+#-----------------------------------
+# Past year 2024
+#-----------------------------------
+numb.PET.collected.2024    <- function.comma.to.thousands(totals.2024$total.PET[1])
+numb.cans.collected.2024   <- function.comma.to.thousands(totals.2024$total.cans[1])
+numb.glass.collected.2024  <- function.comma.to.thousands(totals.2024$total.glass[1])
 numb.carton.collected.2024 <- function.comma.to.thousands(totals.2024$total.carton[1])
 
-numb.PET.refunded.2025 <-  function.comma.to.thousands(totals.2025$total.PET[2])
-numb.PET.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.PET[2])
-
-numb.cans.refunded.2025 <-  function.comma.to.thousands(totals.2025$total.cans[2])
-numb.cans.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.cans[2])
-
-numb.glass.refunded.2025 <-  function.comma.to.thousands(totals.2025$total.glass[2])
-numb.glass.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.glass[2])
-
-numb.carton.refunded.2025 <-  function.comma.to.thousands(totals.2025$total.carton[2])
-numb.carton.refunded.2024 <-  function.comma.to.thousands(totals.2024$total.carton[2])
+numb.PET.refunded.2024     <- function.comma.to.thousands(totals.2024$total.PET[2])
+numb.cans.refunded.2024    <- function.comma.to.thousands(totals.2024$total.cans[2])
+numb.glass.refunded.2024   <- function.comma.to.thousands(totals.2024$total.glass[2])
+numb.carton.refunded.2024  <- function.comma.to.thousands(totals.2024$total.carton[2])
 
 date.earliest.record.recycling <- format(min(containers$date.of.activity, na.rm = TRUE), "%d %B %Y")
 date.latest.record.recycling <- format(max(containers$date.of.activity, na.rm = TRUE),"%d %B %Y")
