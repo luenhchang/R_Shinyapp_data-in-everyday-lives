@@ -139,6 +139,18 @@ dir.app <- file.path(dir.C,"GoogleDrive_MyDrive","scripts","RProject_Shinyapp_da
 #setwd(dir.app)
 source("functions.R")
 
+sheet.ID.petro.logbook <- "https://docs.google.com/spreadsheets/d/1h8SBJpHsSmgLLJ1KSH5w-rD8aPz_oPPe2aJLqYK5xGY/"
+googlesheets4::gs4_deauth()
+petro.logbook <- googlesheets4::read_sheet(ss=sheet.ID.petro.logbook
+                                              ,sheet = "unleaded91_HondaJazz"
+                                              ,col_types = 'TDnnnnc'
+                                              ,na=c("NA"," ")
+                                           ) %>%
+  dplyr::mutate(timestamp.date = as.Date(timestamp)
+                ,timestamp.month.label = lubridate::month(timestamp.date, label = TRUE, abbr = TRUE)
+                ,timestamp.month.num = cut.Date(timestamp.date, breaks = "1 month", labels = FALSE)
+                ,timestamp.year = lubridate::year(timestamp.date)) # dim(petro.logbook) 84 11
+
 #---------------------------------------------------------
 # Read data from water-tank-usage-events_responses.gsheet
 ## Change general access to Any one with the link can view
@@ -171,7 +183,6 @@ water.tank.usage <- googlesheets4::read_sheet(ss=sheet.ID.water.tank.usage
 sheet.ID.barcodes <- "https://docs.google.com/spreadsheets/d/1hnIOmXw6s56lX-J7IEY3SUBHM2ySd3Usn82bQNxruto/"
 googlesheets4::gs4_deauth()
 
-# Read Google sheet tab=food
 # Read Google sheet tab = food
 barcode.food <- googlesheets4::read_sheet(sheet.ID.barcodes
                                           ,sheet = "food"
@@ -1078,14 +1089,19 @@ this_month_stats <- cbind(
   ,water.tank.usage %>%
     dplyr::filter(timestamp >= start_of_this_month) %>%
     dplyr::summarise(total_water_tank_usage_litre = sum(water_tank_usage_litre, na.rm = TRUE))
+# Petroleum consumption
+  ,petro.logbook %>%
+    dplyr::filter(Date >= start_of_this_month) %>%
+    dplyr::summarise( total_cost_monthly= sum(Total_cost, na.rm = TRUE)
+                     ,total_litres_monthly=sum(Litres, na.rm = TRUE))
+# close cbind()
   ) %>%
   replace(is.na(.), 0)
-
 
 # Reshape data to long format
 this_month_stats_long <- this_month_stats %>% 
   tidyr::pivot_longer(
-    cols = c(total_food_price, total_water_tank_usage_litre)
+    cols = c(total_food_price, total_water_tank_usage_litre, total_cost_monthly, total_litres_monthly)
     ,names_to = "metric"
     ,values_to = "value") %>%
   dplyr::mutate(month= "this")
@@ -1096,18 +1112,22 @@ last_month_stats <- cbind(
   barcode.food %>%
     dplyr::filter(timestamp >= start_of_last_month & timestamp < start_of_this_month) %>%
     dplyr::summarise(total_food_price = sum(price, na.rm = TRUE))
-  
 # Monthly total of Water usage in litre
   ,water.tank.usage %>%
     dplyr::filter(timestamp >= start_of_last_month & timestamp < start_of_this_month) %>%
     dplyr::summarise(total_water_tank_usage_litre = sum(water_tank_usage_litre, na.rm = TRUE))
+# Monthly spend on petro and litre of consumption
+  ,petro.logbook %>%
+    dplyr::filter(Date >= start_of_last_month & Date < start_of_this_month) %>%
+    dplyr::summarise(total_cost_monthly= sum(Total_cost, na.rm = TRUE)
+                    ,total_litres_monthly=sum(Litres, na.rm = TRUE))
 ) %>%
   replace(is.na(.), 0)
 
 # Reshape data to long format
 last_month_stats_long <- last_month_stats %>% 
   tidyr::pivot_longer(
-    cols = c(total_food_price, total_water_tank_usage_litre)
+    cols = c(total_food_price, total_water_tank_usage_litre, total_cost_monthly, total_litres_monthly)
     ,names_to = "metric"
     ,values_to = "value") %>%
   dplyr::mutate(month= "last")
@@ -1121,23 +1141,42 @@ month_stats <- merge( x= this_month_stats_long
   dplyr::mutate(
     # Display this month's formatted values
     value_this_formatted= case_when(
+       # Food expense ($)
        metric== "total_food_price" ~ paste0("$AUD ",round(value_this, digits = 2))
+       # Water collection (L) 
       ,metric == "total_water_tank_usage_litre" ~ paste0( format(round(value_this, 1)
                                                                  ,big.mark = ","
                                                                  , trim = TRUE)
                                                           ," L")
+      ## Petrol cost ($)
+      ,metric == "total_cost_monthly" ~ paste0("$AUD ",format(round(value_this, 2)
+                                                              ,big.mark = ","
+                                                              ,trim = TRUE)
+                                               )
+      # Petrol litres (L)
+      ,metric == "total_litres_monthly" ~ paste0(format(round(value_this, 1)
+                                                        ,big.mark = ","
+                                                        ,trim = TRUE)
+                                                 ," L"
+                                                 )
+      ,TRUE ~ as.character(value_this)
+    # Close case_when()  
     )
     # Calculate numeric changes
     ,change = round(value_this - value_last, digits = 2)
     
     # Create character changes to use in valueBoxes
     ,change_formatted = case_when(
-       metric =="total_food_price" ~ as.character(abs(value_this - value_last))
-      ,metric == "total_water_tank_usage_litre" ~ paste0(abs(change), " L")
-    )
+       metric %in% c("total_food_price", "total_cost_monthly") ~ paste0("$AUD ",format(abs(change), big.mark = ",",trim = TRUE))
+      ,metric %in% c("total_water_tank_usage_litre", "total_litres_monthly") ~ paste0(format(abs(change),big.mark = ",",trim = TRUE)," L")
+      ,TRUE ~ as.character(abs(change))
+      )
     # argument expression to use in valueBox subtitle
     ,subtitle= case_when(
-      metric %in% c("total_food_price", "total_water_tank_usage_litre") ~ 
+      metric %in% c( "total_food_price"
+                    ,"total_water_tank_usage_litre"
+                    ,"total_cost_monthly"
+                    ,"total_litres_monthly") ~ 
         paste0(
           ifelse( change > 0
                   ,"<span style='color:green;'>&#9650;</span>"  # ▲ Upward triangle in green

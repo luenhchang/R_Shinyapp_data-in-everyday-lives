@@ -68,8 +68,33 @@ server <- function(input, output, session) {
                           ,argument.color="black" # Color argument still required but overridden with CSS
   ) # Close function.renderValueBox()
   
+  # Monthly spend and litre of petro
+  function.renderValueBox(
+     shiny_output = output
+    ,output.id = "valueBox.this.month.highlight.total.petro.consumption"
+    ,argument.value = HTML(
+      paste0(
+        "Unleaded 91 petroleum <br>"
+        # Petrol cost
+        ,month_stats %>% dplyr::filter(metric == "total_cost_monthly") %>% dplyr::pull(value_this_formatted)
+        ,"/ "
+        # Petrol litres
+        ,month_stats %>% dplyr::filter(metric == "total_litres_monthly") %>% dplyr::pull(value_this_formatted)
+        )
+      )
+    ,argument.subtitle = HTML(
+      paste0(
+        # Cost change
+        month_stats %>% dplyr::filter(metric == "total_cost_monthly") %>% dplyr::pull(subtitle)
+        ,"/ "
+        # Litres change
+        ,month_stats %>% dplyr::filter(metric == "total_litres_monthly") %>% dplyr::pull(subtitle)
+        )
+      )
+    ,argument.icon = icon("gas-pump")
+    ,argument.color = "black"
+  )
   
-
   #*****************************************
   # Outputs to use under menuItem "About"
   #*****************************************

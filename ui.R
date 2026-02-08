@@ -75,7 +75,8 @@ body <- shinydashboard::dashboardBody(
             tags$h1("This Month's Highlights", style = style.header)
             )
           ,shinydashboard::valueBoxOutput(outputId = "valueBox.this.month.highlight.total.spent.on.food", width = 3)
-          ,shinydashboard::valueBoxOutput(outputId = "valueBox.this.month.highlight.total.water.tank.usage", width = 3)
+          ,shinydashboard::valueBoxOutput(outputId = "valueBox.this.month.highlight.total.water.tank.usage", width = 4)
+          ,shinydashboard::valueBoxOutput(outputId = "valueBox.this.month.highlight.total.petro.consumption", width = 5)
         ) # Close fluidRow()
       ) # End tabItem()
       
