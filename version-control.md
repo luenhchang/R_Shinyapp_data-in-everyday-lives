@@ -248,4 +248,20 @@ git commit -m "Updated global.R, server.R, ui.R adding 2026 container recycling"
 git push origin main
 ```
 
+## 2026-02-08
+```bash
+cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
+git add .
+git commit -m "Updated global.R, server.R, ui.R adding monthly spend and litre on petroleum. Added function.comma.to.thousands() in functions.R"
+git push origin main
+```
+
+## 2026-04-26
+```bash
+cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
+git add .
+git commit -m "Updated global.R, server.R, ui.R adding monthly spend and litre on petroleum. Added function.comma.to.thousands() in functions.R"
+git push origin main
+```
+
 
