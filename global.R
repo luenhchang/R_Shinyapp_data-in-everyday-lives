@@ -161,7 +161,7 @@ googlesheets4::gs4_deauth()
 
 water.tank.usage <- googlesheets4::read_sheet(ss=sheet.ID.water.tank.usage
                                               ,sheet = "Form Responses 1"
-                                              ,col_types = 'TDccnnnc'
+                                              ,col_types = 'TDccnnncn'
                                               ,na=c("NA"," ")
                                               ) %>%
   dplyr::rowwise() %>%
@@ -169,9 +169,10 @@ water.tank.usage <- googlesheets4::read_sheet(ss=sheet.ID.water.tank.usage
     water_tank_usage_litre= sum( number_3_litre_milk_bottles*3
                                  ,number_9_litre_buckets*9
                                  ,number_9_litre_watering_cans*9
+                                 ,number_10_litre_water_bottles*10
                                  ,na.rm =  TRUE)
     ) %>% 
-  dplyr::ungroup() # dim(water.tank.usage) 120 9
+  dplyr::ungroup() # dim(water.tank.usage) 238 10
 
 #*****************************************
 # Read data to use under menuItem "Food" 
@@ -236,6 +237,12 @@ dplyr::mutate(
     )
   ) |>
   dplyr::ungroup()
+
+# Read Google sheet tab = diningout
+barcode.diningout <- googlesheets4::read_sheet(sheet.ID.barcodes
+                                          ,sheet = "diningout"
+                                          ,col_types = "Tcccncc"  # T datetime, c character, n numeric, D date
+                                          ,na = c("NA", " ")) # dim(barcode.diningout) 30 7
 
 #-----------------------------------------------------------------------------------------------------
 # Identify rows with problematic product.name that doesn't have a space between item name and quantity
@@ -1068,9 +1075,9 @@ most_recent_Rate_Incl_GST_Peak <- paste0("$",tail(alinta_bills_rates_over_supply
                                              tail(alinta_bills_rates_over_supply_period, n=1)[1,13]
                                          ,"/KWh")
 
-#---------------------------------------
+#*****************************************
 # Create data for this month's highlight 
-#---------------------------------------
+#*****************************************
 # Get the current date
 current_date <- Sys.Date()
 
@@ -1086,6 +1093,10 @@ this_month_stats <- cbind(
   barcode.food %>%
     dplyr::filter(timestamp >= start_of_this_month) %>%
     dplyr::summarise(total_food_price = sum(price, na.rm = TRUE))
+# Monthly total of dining out expense
+  ,barcode.diningout %>%
+    dplyr::filter(timestamp >= start_of_this_month) %>%
+    dplyr::summarise(total_diningout_price= sum(price, na.rm = TRUE))
 # Monthly total of water tank usage
   ,water.tank.usage %>%
     dplyr::filter(timestamp >= start_of_this_month) %>%
@@ -1097,12 +1108,12 @@ this_month_stats <- cbind(
                      ,total_litres_monthly=sum(Litres, na.rm = TRUE))
 # close cbind()
   ) %>%
-  replace(is.na(.), 0)
+  replace(is.na(.), 0) # dim(this_month_stats) 1 5
 
 # Reshape data to long format
 this_month_stats_long <- this_month_stats %>% 
   tidyr::pivot_longer(
-    cols = c(total_food_price, total_water_tank_usage_litre, total_cost_monthly, total_litres_monthly)
+    cols = c(total_food_price, total_diningout_price, total_water_tank_usage_litre, total_cost_monthly, total_litres_monthly)
     ,names_to = "metric"
     ,values_to = "value") %>%
   dplyr::mutate(month= "this")
@@ -1113,6 +1124,10 @@ last_month_stats <- cbind(
   barcode.food %>%
     dplyr::filter(timestamp >= start_of_last_month & timestamp < start_of_this_month) %>%
     dplyr::summarise(total_food_price = sum(price, na.rm = TRUE))
+# Monthly total of dining out expense
+  ,barcode.diningout %>%
+    dplyr::filter(timestamp >= start_of_last_month & timestamp < start_of_this_month) %>%
+  dplyr::summarise(total_diningout_price = sum(price, na.rm = TRUE))
 # Monthly total of Water usage in litre
   ,water.tank.usage %>%
     dplyr::filter(timestamp >= start_of_last_month & timestamp < start_of_this_month) %>%
@@ -1123,12 +1138,12 @@ last_month_stats <- cbind(
     dplyr::summarise(total_cost_monthly= sum(Total_cost, na.rm = TRUE)
                     ,total_litres_monthly=sum(Litres, na.rm = TRUE))
 ) %>%
-  replace(is.na(.), 0)
+  replace(is.na(.), 0) # dim(last_month_stats) 1 5
 
 # Reshape data to long format
 last_month_stats_long <- last_month_stats %>% 
   tidyr::pivot_longer(
-    cols = c(total_food_price, total_water_tank_usage_litre, total_cost_monthly, total_litres_monthly)
+    cols = c(total_food_price, total_diningout_price, total_water_tank_usage_litre, total_cost_monthly, total_litres_monthly)
     ,names_to = "metric"
     ,values_to = "value") %>%
   dplyr::mutate(month= "last")
@@ -1144,6 +1159,8 @@ month_stats <- merge( x= this_month_stats_long
     value_this_formatted= case_when(
        # Food expense ($)
        metric== "total_food_price" ~ paste0("$AUD ",round(value_this, digits = 2))
+       # diningout expense ($)
+       ,metric == "total_diningout_price" ~ paste0("$AUD ",round(value_this, digits = 2))
        # Water collection (L) 
       ,metric == "total_water_tank_usage_litre" ~ paste0( format(round(value_this, 1)
                                                                  ,big.mark = ","
@@ -1168,13 +1185,14 @@ month_stats <- merge( x= this_month_stats_long
     
     # Create character changes to use in valueBoxes
     ,change_formatted = case_when(
-       metric %in% c("total_food_price", "total_cost_monthly") ~ paste0("$AUD ",format(abs(change), big.mark = ",",trim = TRUE))
+       metric %in% c("total_food_price","total_diningout_price", "total_cost_monthly") ~ paste0("$AUD ",format(abs(change), big.mark = ",",trim = TRUE))
       ,metric %in% c("total_water_tank_usage_litre", "total_litres_monthly") ~ paste0(format(abs(change),big.mark = ",",trim = TRUE)," L")
       ,TRUE ~ as.character(abs(change))
       )
     # argument expression to use in valueBox subtitle
     ,subtitle= case_when(
       metric %in% c( "total_food_price"
+                    ,"total_diningout_price" 
                     ,"total_water_tank_usage_litre"
                     ,"total_cost_monthly"
                     ,"total_litres_monthly") ~ 

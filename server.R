@@ -49,6 +49,24 @@ server <- function(input, output, session) {
                           ,argument.icon=icon("running")
                           ,argument.color="black" # Color argument still required but overridden with CSS
                           ) # Close function.renderValueBox()
+
+  # Monthly expenditure on dining out this month
+  function.renderValueBox(shiny_output = output
+                          ,output.id = "valueBox.this.month.highlight.total.spent.on.diningout"
+                          ,argument.value = HTML(
+                            paste0(
+                              "Spent on diningout <br>"
+                              ,month_stats %>% dplyr::filter(metric=="total_diningout_price") %>% dplyr::pull(value_this_formatted)
+                            ) # Close paste0()
+                          ) # Close HTML()
+                          ,argument.subtitle = HTML(
+                            paste0(
+                              month_stats %>% dplyr::filter(metric=="total_diningout_price") %>% dplyr::pull(subtitle)
+                            ) # Close paste0()
+                          ) # Close HTML()
+                          ,argument.icon=icon("running")
+                          ,argument.color="black" # Color argument still required but overridden with CSS
+                          ) # Close function.renderValueBox()
   
   # Monthly water tank usage litre
   function.renderValueBox(shiny_output = output

@@ -260,7 +260,7 @@ git push origin main
 ```bash
 cd "C:/GoogleDrive_MyDrive/scripts/RProject_Shinyapp_data-in-everyday-lives"
 git add .
-git commit -m "Updated global.R, server.R, ui.R adding monthly spend and litre on petroleum. Added function.comma.to.thousands() in functions.R"
+git commit -m "Created parse_NEM12_interval_data.R.R, parsing csv file with meter reading data in NEM12 format"
 git push origin main
 ```
 
